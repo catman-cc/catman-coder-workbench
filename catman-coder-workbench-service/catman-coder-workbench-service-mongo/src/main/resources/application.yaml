@@ -1,0 +1,27 @@
+server:
+  port: 8080
+spring:
+  freemarker:
+    cache: false
+    charset: utf-8
+    expose-request-attributes: true
+    expose-session-attributes: true
+    suffix: .ftl
+    template-loader-path: classpath:/webapp/
+  web:
+    resources:
+      static-locations: classpath:/static/
+  data:
+    mongodb:
+      database: panda
+#      host: 127.0.0.1
+#      port: 27017
+      # uri: mongodb://localhost:27017/test
+      uri: mongodb://panda:zugto4-kogkUm-beztyg@115.227.16.113:31509/?tls=false&directConnection=true
+    rest:
+      base-path: /resources
+  jackson:
+    default-property-inclusion: non_null
+logging:
+  level:
+    root: info

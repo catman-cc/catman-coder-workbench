@@ -1,0 +1,24 @@
+spring:
+  jackson:
+    default-property-inclusion: non_null
+  datasource:
+    url: jdbc:mysql://localhost:13306/catman-workbench?useSSL=false&autoReconnect=true&characterEncoding=utf8
+    driver-class-name: com.mysql.jdbc.Driver
+    username: jpanda
+    password: jpanda
+    initial-size: 20
+    max-idle: 60
+    max-wait: 10000
+    min-idle: 10
+    max-active: 200
+  jpa:
+    generate-ddl: true
+#    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+        use-new-id-generator-mappings: false
+logging:
+  level:
+    root: info
