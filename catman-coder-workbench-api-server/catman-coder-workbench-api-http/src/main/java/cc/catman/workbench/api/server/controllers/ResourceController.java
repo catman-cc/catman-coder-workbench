@@ -1,5 +1,7 @@
 package cc.catman.workbench.api.server.controllers;
 
+import cc.catman.coder.workbench.core.label.DefaultLabelSelectorContext;
+import cc.catman.coder.workbench.core.label.DefaultLabelSelectorFactory;
 import cc.catman.workbench.service.core.entity.Resource;
 import cc.catman.workbench.service.core.entity.ResourceCreate;
 import cc.catman.workbench.service.core.entity.ResourceDetails;
@@ -8,6 +10,7 @@ import cc.catman.workbench.service.core.services.ResourceDetailsLoader;
 import cc.catman.workbench.service.core.services.ResourceDetailsLoaderManager;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -27,12 +30,17 @@ public class ResourceController {
     @javax.annotation.Resource
     private ResourceDetailsLoaderManager resourceDetailsLoaderManager;
 
+    private DefaultLabelSelectorContext labelSelectorContext=DefaultLabelSelectorContext.createDefault();
     /**
      * 获取根资源,及其子资源
      */
     @GetMapping("/root")
-    public Resource root(){
-        return resourceService.findRoot(-1);
+    public Resource root(@RequestParam(value = "selector",required = false)String selector){
+        Resource root = resourceService.findRoot(-1);
+        if(Optional.ofNullable(selector).filter(StringUtils::hasText).isPresent()){
+           return root.filterAndNotEmpty(resource->labelSelectorContext.valid(selector,resource),modelMapper);
+        }
+        return root;
     }
 
     /**
@@ -54,6 +62,12 @@ public class ResourceController {
         ResourceDetails details=modelMapper.map(resource,ResourceDetails.class);
         resourceDetailsLoaderManager.find(resource).ifPresent(loader->details.setDetails(loader.load(resource)));
         return details;
+    }
+
+    @PutMapping("/rename/{id}/{name}")
+    public Resource rename(@PathVariable String id,@PathVariable String name){
+        resourceDetailsLoaderManager.find(resourceService.findById(id,0)).ifPresent(loader->loader.rename(resourceService.findById(id,0),name));
+        return resourceService.rename(id,name);
     }
 
     /**

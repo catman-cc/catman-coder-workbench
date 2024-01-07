@@ -43,7 +43,7 @@ public class MapType extends ComplexType {
             throw new TypeRuntimeException("Duplicate elements are created for the struct: @"+typeDefinition.getName());
         }
         this.definitionMap.put(typeDefinition.getName(),typeDefinition);
-        this.items.add(typeDefinition);
+        this.privateItems.put(typeDefinition.getId(),typeDefinition);
         return this;
     }
 
@@ -70,14 +70,17 @@ public class MapType extends ComplexType {
 
     @Override
     public boolean canConvert(Type target){
+        if (target.isAny()){
+            return true;
+        }
         if (!target.isMap()){
             return false;
         }
         // 然后依次判断,target中所需的结构当前结构是否[全部]包含
         if (target instanceof MapType tt){
-            List<TypeDefinition> tvs = tt.getItems();
-            Map<String,TypeDefinition> cvs=this.getItems().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
-            return tvs.stream()
+            Map<String,TypeDefinition> tvs = tt.getPrivateItems();
+            Map<String,TypeDefinition> cvs=this.getPrivateItems().values().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
+            return tvs.values().stream()
                     .allMatch(tv-> Optional.ofNullable(cvs.get(tv.getName()))
                             .map(cv-> cv.getType().canConvert(tv.getType()))
                             .orElse(false));
@@ -88,14 +91,17 @@ public class MapType extends ComplexType {
 
     @Override
     public boolean isType(Type target) {
+        if (target.isAny()){
+            return true;
+        }
         if (!target.isMap()){
             return false;
         }
         // 然后依次判断,target中所需的结构当前结构是否[全部]包含
         if (target instanceof MapType tt){
-            List<TypeDefinition> tvs = tt.getItems();
-            Map<String,TypeDefinition> cvs=this.getItems().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
-            return tvs.stream()
+            Map<String,TypeDefinition> tvs = tt.getPrivateItems();
+            Map<String,TypeDefinition> cvs=this.getPrivateItems().values().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
+            return tvs.values().stream()
                     .allMatch(tv-> Optional.ofNullable(cvs.get(tv.getName()))
                             .map(cv-> cv.getType().isType(tv.getType()))
                             .orElse(false));

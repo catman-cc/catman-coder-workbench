@@ -28,6 +28,16 @@ public class TypeDefinitionTypeItemRef {
     private String typeDefinitionTypeId;
 
     /**
+     *  类型作为参数的名称
+     */
+    private String name;
+
+    /**
+     * 子项的作用域
+     */
+    private String itemScope;
+
+    /**
      * 引用的类型定义
      */
     private String referencedTypeDefinitionId;

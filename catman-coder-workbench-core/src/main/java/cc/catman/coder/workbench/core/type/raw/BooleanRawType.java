@@ -18,7 +18,8 @@ public class BooleanRawType extends RawType<Boolean> {
 
     @Override
     public boolean canConvert(Type targetType) {
-        return targetType instanceof BooleanRawType;
+
+        return targetType.isAny()||targetType instanceof BooleanRawType;
     }
 
     @Override

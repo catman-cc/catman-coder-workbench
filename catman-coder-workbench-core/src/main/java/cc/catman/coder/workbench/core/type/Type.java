@@ -22,6 +22,7 @@ public interface Type {
     default boolean isArray() {
         return false;
     }
+
     @JsonIgnore
     default boolean isComplex() {
         return isArray() || isMap() || isStruct() || isRefer();
@@ -34,16 +35,34 @@ public interface Type {
     default boolean isStruct() {
         return false;
     }
+
     @JsonIgnore
     default boolean isRefer() {
         return false;
     }
+
     @JsonIgnore
     default boolean isMap() {
         return false;
     }
+
     @JsonIgnore
     default boolean isSlot() {
+        return false;
+    }
+
+    @JsonIgnore
+    default boolean isAny() {
+        return false;
+    }
+
+    @JsonIgnore
+    default boolean isGeneric() {
+        return false;
+    }
+
+    @JsonIgnore
+    default boolean isAnonymous() {
         return false;
     }
 

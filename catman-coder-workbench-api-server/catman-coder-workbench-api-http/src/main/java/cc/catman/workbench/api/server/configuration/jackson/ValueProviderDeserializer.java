@@ -1,6 +1,6 @@
 package cc.catman.workbench.api.server.configuration.jackson;
 
-import cc.catman.coder.workbench.core.value.DefaultValueProvider;
+import cc.catman.coder.workbench.core.value.providers.DefaultValueProvider;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

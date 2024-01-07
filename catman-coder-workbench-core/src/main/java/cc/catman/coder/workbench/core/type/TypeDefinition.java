@@ -73,7 +73,7 @@ public class TypeDefinition extends Base {
 
         // 复合类型,map,struct,refer
         if (type instanceof ComplexType ct) {
-            refers.addAll(ct.getItems().stream().flatMap(i -> {
+            refers.addAll(ct.getPrivateItems().values().stream().flatMap(i -> {
                 if (Scope.PUBLIC.equals(i.scope)) {
                     return Stream.of(i);
                 }

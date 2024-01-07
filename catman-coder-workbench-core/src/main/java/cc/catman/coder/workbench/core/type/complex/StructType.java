@@ -39,13 +39,13 @@ public class StructType extends MapType{
         this.className = className;
     }
         public Map<String,TypeDefinition> getDefinitionMap(){
-        if (definitionMap.size()!=0||items.size()==0){
+        if (definitionMap.size()!=0 || privateItems.size() == 0){
             return definitionMap;
         }
 
         HashMap<String,TypeDefinition> dm = new HashMap<>();
 
-        this.items.forEach(typeDefinition->{
+        this.privateItems.values().forEach(typeDefinition->{
             definitionMap.put(typeDefinition.getName(),typeDefinition);
         });
     return this.definitionMap;
@@ -67,7 +67,7 @@ public class StructType extends MapType{
             throw new TypeRuntimeException("Duplicate elements are created for the struct: @"+typeDefinition.getName());
         }
         this.getDefinitionMap().put(typeDefinition.getName(),typeDefinition);
-        this.items.add(typeDefinition);
+        this.privateItems.put(typeDefinition.getId(),typeDefinition);
         return this;
     }
 
@@ -94,14 +94,20 @@ public class StructType extends MapType{
 
     @Override
     public boolean canConvert(Type target){
+        if (target.isAny()){
+            return true;
+        }
         if (!target.isStruct()){
             return false;
         }
         // 然后依次判断,target中所需的结构当前结构是否[全部]包含
         if (target instanceof StructType tt){
-            List<TypeDefinition> tvs = tt.getItems();
-            Map<String,TypeDefinition> cvs=this.getItems().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
-           return tvs.stream()
+            if (getClassName().equals( tt.getClassName())){
+                return true;
+            }
+            Map<String,TypeDefinition> tvs = tt.getPrivateItems();
+            Map<String,TypeDefinition> cvs=this.getPrivateItems().values().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
+           return tvs.values().stream()
                    .allMatch(tv-> Optional.ofNullable(cvs.get(tv.getName()))
                    .map(cv-> cv.getType().canConvert(tv.getType()))
                    .orElse(false));
@@ -121,9 +127,9 @@ public class StructType extends MapType{
             if (getClassName().equals( tt.getClassName())){
                 return true;
             }
-            List<TypeDefinition> tvs = tt.getItems();
-            Map<String,TypeDefinition> cvs=this.getItems().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
-            return tvs.stream()
+            Map<String,TypeDefinition> tvs = tt.getPrivateItems();
+            Map<String,TypeDefinition> cvs=this.getPrivateItems().values().stream().collect(Collectors.toMap(TypeDefinition::getName, n->n));
+            return tvs.values().stream()
                     .allMatch(tv-> Optional.ofNullable(cvs.get(tv.getName()))
                             .map(cv-> cv.getType().isType(tv.getType()))
                             .orElse(false));
@@ -134,7 +140,7 @@ public class StructType extends MapType{
     protected  List<TypeDefinition> allTypeDefinitions(){
         List<TypeDefinition> ptds = new ArrayList<>(Optional.ofNullable(parent)
                 .map(StructType::allTypeDefinitions).orElse(Collections.emptyList()));
-        this.items.forEach(item->{
+        this.privateItems.values().forEach(item->{
             Optional<TypeDefinition> first = ptds.stream().filter(ptd -> ptd.getName().equals(item.getName())).findFirst();
             if (first.isEmpty()){
                 ptds.add(item);

@@ -13,6 +13,13 @@ public interface Constants {
         String TYPE_NAME_MAP = "map";
         String TYPE_NAME_SLOT="slot";
         String TYPE_NAME_REFER="refer";
+        String TYPE_NAME_ENUM="enum";
+        String TYPE_NAME_GENERIC="generic";
+        String TYPE_NAME_ANY="any";
+        String TYPE_NAME_FILE="file";
+
+
+        String TYPE_NAME_ANONYMOUS="anonymous";
     }
 
     interface ValueProviderKind{
@@ -33,6 +40,12 @@ public interface Constants {
          * 用于标记类名
          */
        String CLASS_NAME=PREFIX+"/"+"className";
+
+        /**
+         * 用于标记资源所属的插件,这样可以对资源进行插件化的扩展和修改
+         */
+       String BELONG_PLUGIN=PREFIX+"/"+"belong-plugin";
+
     }
 
     interface ResourceKind{

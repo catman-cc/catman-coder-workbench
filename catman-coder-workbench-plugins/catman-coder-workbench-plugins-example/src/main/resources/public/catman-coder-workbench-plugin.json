@@ -1,0 +1,24 @@
+{
+  "id": "1",
+  "name": "ValueProviderDescribe",
+  "version": "1.0",
+  "main": "index.js",
+  "provider": {
+    "members": [
+      {
+        "author": "zhangsan",
+        "role": "owner",
+        "email": "aaa@aaa.com"
+      }
+    ]
+  },
+  "description": "ValueProviderDescribe",
+  "wiki_url": "只能是相对地址,或者以/开头的路径地址,不能是指向系统外部的url",
+  "dependencies": [
+    {
+        "id": "123",
+        "name": "ValueProviderDescribe",
+        "version": ">=1.0 and <=2.0"
+    }
+  ]
+}

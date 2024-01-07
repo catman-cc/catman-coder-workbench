@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -48,4 +49,7 @@ public class ResourceRef {
      * 如果资源为leaf资源,则表示该资源无法再继续向下遍历
      */
     private Boolean leaf;
+
+    @Column(length = 1024*1024*20)
+    private String extra;
 }

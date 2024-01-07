@@ -64,6 +64,12 @@ public class BaseServiceImpl implements IBaseService {
                 .map(this::convertToBase).orElse(null);
     }
 
+    @Override
+    public Base findByKindAndBelongId(String kind, String belongId) {
+        return baseRefRepository.findOne(Example.of(BaseRef.builder().kind(kind).belongId(belongId).build()))
+                .map(this::convertToBase).orElse(null);
+    }
+
     @Transactional
     @Override
     public Base save(Base base, String kind, String belongId) {

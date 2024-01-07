@@ -19,7 +19,7 @@ public class NumberRawType extends RawType<Number> {
 
     @Override
     public boolean canConvert(Type targetType) {
-        return targetType instanceof NumberRawType;
+        return targetType.isAny()||targetType instanceof NumberRawType;
     }
 
     @Override

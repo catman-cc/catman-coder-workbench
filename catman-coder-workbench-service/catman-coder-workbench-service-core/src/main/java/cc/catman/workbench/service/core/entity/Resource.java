@@ -1,20 +1,25 @@
 package cc.catman.workbench.service.core.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.modelmapper.ModelMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 树形结构,主要用于遍历资源树.
  * 此处只包含了最基础的数据定义,关于每个资源的细节,需要调用对应的资源接口获取
  */
-@Data
+@Getter
+@Setter
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Resource {
+public class Resource extends Base{
     /**
      * 唯一标志
      */
@@ -47,10 +52,46 @@ public class Resource {
      */
     private List<Resource> children;
 
+    /**
+     * 资源配置,也可以直接存储一些简单资源的配置信息
+     */
+    private String extra;
+
     public void addChildren(Resource resource) {
        if (children == null) {
            children = new ArrayList<>();
        }
         this.children.add(resource);
+    }
+
+    public void filter(Function<Resource,Boolean> filter, Consumer<Resource> consumer) {
+        if (filter.apply(this)) {
+            consumer.accept(this);
+        }
+
+        if (this.children != null) {
+            this.children.forEach(child -> {
+                child.filter(filter, consumer);
+            });
+        }
+    }
+    public Resource filterAndNotEmpty(Function<Resource,Boolean> filter, ModelMapper modelMapper) {
+        if (this.isLeaf()){
+            // 如果是叶子节点,则不再继续向下遍历
+            if (filter.apply(this)) {
+               // 叶子节点通过了过滤器,则直接返回
+                return modelMapper.map(this,Resource.class);
+            }else {
+                return null;
+            }
+        }
+        // 当前不是叶子节点,则继续向下遍历
+        List<Resource> crs = this.children.stream().map(child -> child.filterAndNotEmpty(filter, modelMapper)).filter(Objects::nonNull).toList();
+        if (crs.isEmpty()){
+            return null;
+        }
+        Resource resource = modelMapper.map(this, Resource.class);
+        resource.setChildren(crs);
+        return resource;
     }
 }

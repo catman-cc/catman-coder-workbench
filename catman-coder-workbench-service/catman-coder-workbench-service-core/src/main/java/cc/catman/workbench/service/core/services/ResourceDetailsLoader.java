@@ -22,5 +22,9 @@ public interface ResourceDetailsLoader {
      */
     ResourceDetails create(ResourceCreate resource);
 
+    default boolean rename(Resource resource,String name){
+        return false;
+    }
+
     Object delete(Resource resource);
 }

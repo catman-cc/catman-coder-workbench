@@ -1,5 +1,6 @@
 package cc.catman.coder.workbench.core.value;
 
+import cc.catman.coder.workbench.core.value.providers.UniversalValueProviderConfig;
 import org.springframework.core.convert.TypeDescriptor;
 
 import java.util.Optional;
@@ -7,7 +8,7 @@ import java.util.Optional;
 /**
  * 值提供者,用于上下文中读取相关的值
  */
-public interface ValueProvider<T extends ValueProviderConfig> {
+public interface ValueProvider {
     /**
      * 值提供者的唯一标识
      */
@@ -27,21 +28,21 @@ public interface ValueProvider<T extends ValueProviderConfig> {
      * regex: 正则取值
      * script: 脚本取值
      */
-
+    String getName();
     String getKind();
     void setKind(String kind);
 
-    T getConfig();
+    UniversalValueProviderConfig getConfig();
 
-    void setConfig(T config);
+    void setConfig(UniversalValueProviderConfig config);
 
-    Optional<Object> get(ValueProviderContext context);
+    Optional<Object> run(ValueProviderContext context);
 
-default <R> Optional<R> get(ValueProviderContext context, Class<R> type) {
-    Object res = this.get(context);
+default <R> Optional<R> run(ValueProviderContext context, Class<R> type) {
+    Object res = this.run(context);
     return context.convert(res, TypeDescriptor.valueOf(type));
 }
-default <R> R get(ValueProviderContext context, Class<R> type, R defaultValue) {
-        return this.get(context, type).orElse(defaultValue);
+default <R> R run(ValueProviderContext context, Class<R> type, R defaultValue) {
+        return this.run(context, type).orElse(defaultValue);
     }
 }

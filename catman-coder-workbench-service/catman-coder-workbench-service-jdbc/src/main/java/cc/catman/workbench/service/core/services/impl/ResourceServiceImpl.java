@@ -3,6 +3,7 @@ package cc.catman.workbench.service.core.services.impl;
 import cc.catman.workbench.service.core.entity.Resource;
 import cc.catman.workbench.service.core.po.ResourceRef;
 import cc.catman.workbench.service.core.repossitory.ResourceRefRepository;
+import cc.catman.workbench.service.core.services.IBaseService;
 import cc.catman.workbench.service.core.services.IResourceService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Example;
@@ -17,14 +18,14 @@ import java.util.function.Consumer;
 @Service
 public class ResourceServiceImpl implements IResourceService {
 
-    private static String RESOURCE_ROOT_ID = "__root_1";
-    private static String RESOURCE_ROOT_NAME = "root";
-    private static String RESOURCE_KIND = "resource";
+
 
     @javax.annotation.Resource
     private ModelMapper modelMapper;
     @javax.annotation.Resource
     private ResourceRefRepository resourceRefRepository;
+    @javax.annotation.Resource
+    private IBaseService baseService;
 
     @Override
     public Resource findById(String id, int depth) {
@@ -43,20 +44,33 @@ public class ResourceServiceImpl implements IResourceService {
                                 return child;
                             }
                     ).forEach(resource::addChildren);
-            return resource;
+
+            return Optional.ofNullable(baseService.findByKindAndBelongId(Resource.class.getSimpleName(), resource.getId()))
+                    .map(base-> base.mergeInto(resource))
+                    .orElse(resource);
         }).orElse(null);
     }
 
     @Override
     public Resource findByKindAndResourceId(String kind, String resourceId) {
         return resourceRefRepository.findOne(Example.of(ResourceRef.builder().kind(kind).resourceId(resourceId).build()))
-                .map(resourceRef -> modelMapper.map(resourceRef, Resource.class)).orElse(null);
+                .map(resourceRef -> {
+                    Resource resource = modelMapper.map(resourceRef, Resource.class);
+                    return Optional.ofNullable(baseService.findByKindAndBelongId(Resource.class.getSimpleName(), resource.getId()))
+                            .map(base-> base.mergeInto(resource))
+                            .orElse(resource);
+                }).orElse(null);
     }
 
     @Override
     public List<Resource> listByParentId(String parentId) {
         return resourceRefRepository.findAll(Example.of(ResourceRef.builder().parentId(parentId).build()))
-                .stream().map(resourceRef -> modelMapper.map(resourceRef, Resource.class)).toList();
+                .stream().map(resourceRef -> {
+                    Resource resource = modelMapper.map(resourceRef, Resource.class);
+                    return Optional.ofNullable(baseService.findByKindAndBelongId(Resource.class.getSimpleName(), resource.getId()))
+                            .map(base-> base.mergeInto(resource))
+                            .orElse(resource);
+                }).toList();
     }
 
     @Override
@@ -66,7 +80,12 @@ public class ResourceServiceImpl implements IResourceService {
             return Collections.emptyList();
         }
         return resourceRefRepository.findAll(Example.of(ResourceRef.builder().parentId(parentId).build()))
-                .stream().map(resourceRef -> modelMapper.map(resourceRef, Resource.class))
+                .stream().map(resourceRef -> {
+                    Resource resource = modelMapper.map(resourceRef, Resource.class);
+                    return Optional.ofNullable(baseService.findByKindAndBelongId(Resource.class.getSimpleName(), resource.getId()))
+                            .map(base-> base.mergeInto(resource))
+                            .orElse(resource);
+                })
                 .map(resource -> {
                     resource.setChildren(listByParentId(resource.getId(), depthCounter.decrementAndGet()));
                     return resource;
@@ -106,6 +125,7 @@ public class ResourceServiceImpl implements IResourceService {
             throw new RuntimeException("parentId can not be null");
         }
         ResourceRef saved = resourceRefRepository.saveAndFlush(resourceRef);
+        baseService.save(resource,Resource.class.getSimpleName(),saved.getId());
         Resource saveResource = modelMapper.map(saved, Resource.class);
         // 如果资源包含子资源,则需要递归保存子资源
         Optional.ofNullable(resource.getChildren()).ifPresent(children -> {
@@ -123,8 +143,9 @@ public class ResourceServiceImpl implements IResourceService {
 
     @Override
     public void deleteById(String id) {
-        resourceRefRepository.deleteById(id);
         listByParentId(id, 0).forEach(child -> deleteById(child.getId()));
+        resourceRefRepository.deleteById(id);
+        baseService.deleteByKindAndBelongId(Resource.class.getSimpleName(),id);
     }
 
     @Override

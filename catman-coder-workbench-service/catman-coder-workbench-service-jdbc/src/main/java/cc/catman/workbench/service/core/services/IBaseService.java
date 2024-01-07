@@ -14,6 +14,12 @@ public interface IBaseService {
 
     Base findBaseByBelongId(String id);
 
+    Base findByKindAndBelongId(String kind, String belongId);
+
+    default Base findOptionalByKindAndBelongId(String kind, String belongId) {
+        return findByKindAndBelongId(kind, belongId);
+    }
+
     <T extends Base> Base save(Base base, String kind, String belongId);
 
     Base updateScopeByKindAndBelongID(String kind, String belongId, String scope);

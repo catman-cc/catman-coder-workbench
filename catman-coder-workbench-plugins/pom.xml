@@ -10,6 +10,11 @@
     </parent>
 
     <artifactId>catman-coder-workbench-plugins</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>catman-coder-workbench-plugins-core</module>
+        <module>catman-coder-workbench-plugins-example</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

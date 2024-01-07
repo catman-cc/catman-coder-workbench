@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 数据类型,在定义时,可以定义多个不同的元素,
@@ -32,11 +33,13 @@ public class ArrayType extends ComplexType {
     }
 
     public Type getElement() {
-        return items.size() > 0 ? items.get(0).getType() : null;
+        return privateItems.size() > 0 ? privateItems.get(0).getType() : null;
     }
 
     public ArrayType setElement(DefaultType type) {
-        this.items.add(TypeDefinition.builder()
+        String id= UUID.randomUUID().toString();
+        this.privateItems.put(id,TypeDefinition.builder()
+                        .id(id)
                 .name(ELEMENT_NAME)
                 .type(type)
                 .build());
@@ -45,6 +48,9 @@ public class ArrayType extends ComplexType {
 
     @Override
     public boolean canConvert(Type targetType) {
+        if (targetType.isAny()){
+            return true;
+        }
         if (!targetType.isArray()) {
             return false;
         }
@@ -60,6 +66,9 @@ public class ArrayType extends ComplexType {
 
     @Override
     public boolean isType(Type target) {
+        if (target.isAny()){
+            return true;
+        }
         return getTypeName().equals(target.getTypeName());
     }
 

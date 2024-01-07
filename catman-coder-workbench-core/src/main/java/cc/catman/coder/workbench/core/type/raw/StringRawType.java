@@ -18,7 +18,7 @@ public class StringRawType extends RawType<String> {
 
     @Override
     public boolean canConvert(Type targetType) {
-        return targetType instanceof StringRawType;
+        return targetType.isAny()||targetType instanceof StringRawType;
     }
 
     @Override
