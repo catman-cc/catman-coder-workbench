@@ -3,7 +3,6 @@ package cc.catman.coder.workbench.core.parameter;
 import cc.catman.coder.workbench.core.Base;
 import cc.catman.coder.workbench.core.Constants;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
-import cc.catman.coder.workbench.core.value.ValueProvider;
 import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -25,7 +24,7 @@ import java.util.UUID;
 public class Parameter extends Base {
 
     @Builder.Default
-    private String id = Constants.TEMP_ID_SUFFIX+UUID.randomUUID().toString();
+    private String id = Constants.TEMP_ID_SUFFIX + UUID.randomUUID();
 
     /**
      * 参数名称
@@ -62,13 +61,10 @@ public class Parameter extends Base {
 
     /**
      *  是否跳过子节点的解析,该参数可以在前端进行设置
-     *
      *  如果当前参数是一个对象,并且该属性为true,则不会解析该对象的子节点
      *  同时,如果一个参数的所有子节点都是用了父节点取值器,那么该属性也会被设置为true
      */
     private boolean skipChildFlag;
-
-
 
     @Builder.Default
     private List<Parameter> items = new ArrayList<>();

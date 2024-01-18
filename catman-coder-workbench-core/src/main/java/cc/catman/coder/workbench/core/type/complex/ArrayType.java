@@ -33,7 +33,7 @@ public class ArrayType extends ComplexType {
     }
 
     public Type getElement() {
-        return privateItems.size() > 0 ? privateItems.get(0).getType() : null;
+        return privateItems.size() > 0 ? privateItems.values().stream().findFirst().map(TypeDefinition::getType).orElse(null) : null;
     }
 
     public ArrayType setElement(DefaultType type) {

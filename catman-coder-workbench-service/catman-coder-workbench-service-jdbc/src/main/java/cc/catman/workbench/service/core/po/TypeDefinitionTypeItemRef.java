@@ -45,5 +45,5 @@ public class TypeDefinitionTypeItemRef {
     /**
      * 类型定义的排序
      */
-    private int orderIndex;
+    private Integer orderIndex;
 }

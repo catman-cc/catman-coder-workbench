@@ -40,9 +40,6 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
     @Resource
     private IdGenerator idGenerator;
 
-//    @Resource
-//    private Cache<String, TypeDefinition> caffeineCache;
-
     @Resource
     private ConversionService conversionService;
 
@@ -134,7 +131,7 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
 
         // 综上所述,先进行集合类型的校验
         // 当类型为集合时,需要自动填充item类型
-        Map<String, TypeDefinition> privateItems = type.getPrivateItems();
+        List<TypeItem> sortedItems = type.getSortedAllItems();
         if (Constants.Type.TYPE_NAME_ARRAY.equals(type.getTypeName())) {
             // 此处需要校验
             if (CollectionUtils.isEmpty(type.getSortedAllItems())) {
@@ -147,9 +144,9 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                         .name("elements")
                         .itemId(anyType.getId())
                         .build());
-            } else if (privateItems.size() > 1) {
+            } else if (sortedItems.size() > 1) {
                 throw new IllegalArgumentException("数组类型只能有一个元素");
-            } else if (!Objects.equals(privateItems.get(0).getName(), "elements")) {
+            } else if (sortedItems.stream().filter(item -> !item.getName().equals("elements")).count() > 0) {
                 throw new IllegalArgumentException("数组类型的元素名称必须为elements");
             }
         }
@@ -162,6 +159,8 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                 log.warn("基础类型不持有子类型定义,存在的子元素类型定义,将被忽略,{}", type.getSortedAllItems());
             }
         }
+        Map<String, TypeDefinition> privateItems = type.getPrivateItems();
+
         // 注意,所有的子类型定义,都必须存在id,否则无法进行关联
         Map<String, TypeDefinition> privateItemMap = privateItems.values().stream()
                 .peek(t -> {
@@ -170,6 +169,7 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                     }
                 })
                 .collect(Collectors.toMap(TypeDefinition::getId, (t) -> t));
+
         Map<String, TypeDefinition> newPrivateItems = new HashMap<>();
         for (int i = 0; i < type.getSortedAllItems().size(); i++) {
             TypeItem typeItem = type.getSortedAllItems().get(i);
@@ -181,9 +181,9 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                         throw new IllegalArgumentException("类型定义的子元素必须存在id或者name");
                     }
                     // 判断是否为私有类型定义
-                    if (privateItemMap.containsKey(typeItem.getName())) {
+                    if (privateItemMap.containsKey(typeItem.getItemId())) {
                         // 说明是一个私有类型定义,需要执行保存操作
-                        TypeDefinition saved = save(privateItemMap.get(typeItem.getName()));
+                        TypeDefinition saved = save(privateItemMap.get(typeItem.getItemId()));
                         typeItem.setItemId(saved.getId());
                         newPrivateItems.put(saved.getId(), saved);
                     } else {
@@ -236,7 +236,6 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                 .findOne(Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(typeDefinitionPO.getId()).build()))
                 .map(typeDefinitionTypeRef -> {
                     String typeName = typeDefinitionTypeRef.getTypeName();
-
                     // 继续查找子类型定义
                     // 获取所有被引用的类型定义
                     List<TypeDefinitionTypeItemRef> typeItems = typeDefinitionTypeItemRefRepository

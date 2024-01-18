@@ -9,6 +9,7 @@ import cc.catman.workbench.service.core.services.ITypeDefinitionService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +65,9 @@ public class TypeDefinitionSchemaServiceImpl implements ITypeDefinitionSchemaSer
             String itemId = item.getItemId();
             referenceRelationship.compute(id, (k, v) -> {
                 if (v == null) {
-                    return List.of(itemId);
+                    List<String> list = new ArrayList<>();
+                    list.add(itemId);
+                    return list;
                 } else {
                     v.add(itemId);
                     return v;
@@ -79,15 +82,15 @@ public class TypeDefinitionSchemaServiceImpl implements ITypeDefinitionSchemaSer
         DefaultType type = typeDefinition.getType();
         for (TypeItem item : type.getSortedAllItems()) {
             String itemId = item.getItemId();
-            TypeDefinition find = type.getPrivateItems().values().stream().filter(i -> i.getId().equals(itemId)).findFirst()
+             type.getPrivateItems().values().stream().filter(i -> i.getId().equals(itemId)).findFirst()
                     .map(i->deepFillPublicDefinitions(i,schema))
                     .orElseGet(()-> Optional.ofNullable(schema.getDefinitions().get(itemId))
                             .orElseGet(()->{
                                 TypeDefinition itemDefinition = typeDefinitionService.findById(itemId).orElseThrow(() -> new RuntimeException("can not find type definition:" + itemId));
                                 schema.getDefinitions().put(itemId, itemDefinition);
+                                deepFillPublicDefinitions(itemDefinition,schema);
                                 return itemDefinition;
                             }));
-            deepFillPublicDefinitions(find,schema);
         }
         return typeDefinition;
     }
