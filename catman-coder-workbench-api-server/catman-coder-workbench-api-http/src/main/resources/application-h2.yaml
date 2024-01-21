@@ -1,4 +1,6 @@
 spring:
+  jackson:
+    default-property-inclusion: non_null
   datasource:
     driverClassName: org.h2.Driver
     username: root

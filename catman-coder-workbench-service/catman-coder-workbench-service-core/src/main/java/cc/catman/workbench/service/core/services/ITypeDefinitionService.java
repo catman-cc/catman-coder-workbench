@@ -2,8 +2,10 @@ package cc.catman.workbench.service.core.services;
 
 import cc.catman.coder.workbench.core.SimpleInfo;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -24,6 +26,11 @@ public interface ITypeDefinitionService {
      * @return 类型定义
      */
     Optional<TypeDefinition> findById(String id);
+
+    Optional<TypeDefinition> findById(String id,TypeDefinition parent);
+
+    Optional<TypeDefinition> findById(String id, ILoopReferenceContext context);
+    Optional<TypeDefinition> findById(String id, Map<String,TypeDefinition> existPublicTypeDefinitions);
 
     /**
      * 根据id删除类型定义, 删除类型定义时,需要考虑类型定义的范围,如果类型定义是PRIVATE,那么可以删除,如果类型是PUBLIC,在级联状态下,删除级联关系即可,

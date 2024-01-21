@@ -4,6 +4,7 @@ import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.parameter.Parameter;
 import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.workbench.service.core.entity.Base;
 import cc.catman.workbench.service.core.po.ParameterItemRef;
 import cc.catman.workbench.service.core.po.ParameterRef;
@@ -47,15 +48,18 @@ public class ParameterServiceImpl implements IParameterService {
     public Optional<Parameter> findById(String id) {
         return Optional.ofNullable(id).flatMap(pid -> parameterRefRepository.findById(pid).map(parameterRef -> {
             Parameter parameter = modelMapper.map(parameterRef, Parameter.class);
+
             // 填充类型定义
             typeDefinitionService.findById(parameterRef.getTypeDefinitionId())
                     .ifPresent(parameter::setType);
+
             // 填充值提取器
-            valueProviderDefinitionService.findById(parameterRef.getValueProviderDefinitionId())
-                    .ifPresent(parameter::setValue);
+            Optional.ofNullable(parameterRef.getValueProviderDefinitionId()).flatMap(valueProviderDefinitionId -> valueProviderDefinitionService.findById(valueProviderDefinitionId)).ifPresent(parameter::setValue);
             // 填充默认值提取器
-            valueProviderDefinitionService.findById(parameterRef.getDefaultValueProviderDefinitionId())
-                    .ifPresent(parameter::setDefaultValue);
+
+            Optional.ofNullable(parameterRef.getDefaultValueProviderDefinitionId()).flatMap(defaultValueProviderDefinitionId -> valueProviderDefinitionService.findById(defaultValueProviderDefinitionId)).ifPresent(parameter::setDefaultValue);
+
+
             // 填充子元素
             parameterItemRefRepository.findAll(
                             Example.of(
@@ -66,7 +70,7 @@ public class ParameterServiceImpl implements IParameterService {
                     .sorted(Comparator.comparing(ParameterItemRef::getOrderIndex))
                     .map(itemRef -> {
                         // 填充子元素的类型定义
-                        return findById(itemRef.getReferencedParameterId()).orElseThrow();
+                        return findById(itemRef.getReferencedParameterId(),parameter.getPublicValueProviderDefinitions(),parameter.getPublicItems(),parameter.getPublicTypeDefinitions()).orElseThrow();
                     })
                     .forEach(parameter.getItems()::add);
             // 填充base
@@ -78,12 +82,117 @@ public class ParameterServiceImpl implements IParameterService {
     }
 
     @Override
+    public Optional<Parameter> findById(String id, ILoopReferenceContext context) {
+        return context.getParameter(id,(ctx)->{
+            return Optional.ofNullable(id).flatMap(pid -> parameterRefRepository.findById(pid).map(parameterRef -> {
+                Parameter parameter = modelMapper.map(parameterRef, Parameter.class);
+                parameter.setPublicItems(context.getParameters());
+                parameter.setPublicTypeDefinitions(context.getTypeDefinitions());
+                context.add(parameter);
+
+
+                // 填充类型定义
+                typeDefinitionService.findById(parameterRef.getTypeDefinitionId(),context)
+                        .ifPresent(parameter::setType);
+
+                // 填充值提取器
+                valueProviderDefinitionService.findById(parameterRef.getValueProviderDefinitionId(),context)
+                        .ifPresent(parameter::setValue);
+                // 填充默认值提取器
+                valueProviderDefinitionService.findById(parameterRef.getDefaultValueProviderDefinitionId(),context)
+                        .ifPresent(parameter::setDefaultValue);
+
+                // 填充子元素
+                parameterItemRefRepository.findAll(
+                                Example.of(
+                                        ParameterItemRef.builder().belongParameterId(parameter.getId()).build()
+                                )
+                        )
+                        .stream()
+                        .sorted(Comparator.comparing(ParameterItemRef::getOrderIndex))
+                        .map(itemRef -> {
+                            // 填充子元素的类型定义
+                            return findById(itemRef.getReferencedParameterId(),context).orElseThrow();
+                        })
+                        .forEach(parameter.getItems()::add);
+                // 填充base
+                Optional.ofNullable(baseService.findByKindAndBelongId("parameter", parameter.getId())).ifPresent(base -> {
+                    base.mergeInto(parameter);
+                });
+                return parameter;
+            }));
+        });
+    }
+
+    @Override
+    public Optional<Parameter> findById(String id, Map<String, ValueProviderDefinition> existPublicValueProviderDefinitions, Map<String, Parameter> existPublicParameters, Map<String, TypeDefinition> existPublicTypeDefinitions) {
+
+
+        if (existPublicParameters.containsKey(id)) {
+            return Optional.of(existPublicParameters.get(id));
+        }
+
+        return Optional.ofNullable(id).flatMap(pid -> parameterRefRepository.findById(pid).map(parameterRef -> {
+            Parameter parameter = modelMapper.map(parameterRef, Parameter.class);
+            parameter.setPublicItems(existPublicParameters);
+            parameter.setPublicTypeDefinitions(existPublicTypeDefinitions);
+
+            if (parameter.getScope().isPublic()){
+                existPublicParameters.put(parameter.getId(),parameter);
+            }
+
+
+            // 填充类型定义
+            typeDefinitionService.findById(parameterRef.getTypeDefinitionId(),existPublicTypeDefinitions)
+                    .ifPresent(parameter::setType);
+
+            // 填充值提取器
+            valueProviderDefinitionService.findById(parameterRef.getValueProviderDefinitionId()
+                    ,existPublicValueProviderDefinitions
+                    ,existPublicParameters
+                    ,existPublicTypeDefinitions
+                    )
+                    .ifPresent(parameter::setValue);
+            // 填充默认值提取器
+            valueProviderDefinitionService.findById(parameterRef.getDefaultValueProviderDefinitionId()
+                            ,existPublicValueProviderDefinitions
+                            ,existPublicParameters
+                            ,existPublicTypeDefinitions
+                    )
+                    .ifPresent(parameter::setDefaultValue);
+
+            // 填充子元素
+            parameterItemRefRepository.findAll(
+                            Example.of(
+                                    ParameterItemRef.builder().belongParameterId(parameter.getId()).build()
+                            )
+                    )
+                    .stream()
+                    .sorted(Comparator.comparing(ParameterItemRef::getOrderIndex))
+                    .map(itemRef -> {
+                        // 填充子元素的类型定义
+                        return findById(itemRef.getReferencedParameterId(),existPublicValueProviderDefinitions,existPublicParameters,existPublicTypeDefinitions).orElseThrow();
+                    })
+                    .forEach(parameter.getItems()::add);
+            // 填充base
+            Optional.ofNullable(baseService.findByKindAndBelongId("parameter", parameter.getId())).ifPresent(base -> {
+                base.mergeInto(parameter);
+            });
+            return parameter;
+        }));
+    }
+
+
+    @Override
     public Parameter save(Parameter parameter) {
         final ParameterRef parameterRef = modelMapper.map(parameter, ParameterRef.class);
 
         // 比较类型定义
         Optional.ofNullable(parameter.getType()).map(typeDefinition -> {
             // 保存类型定义
+            if (Scope.isPublic(typeDefinition)){
+                return typeDefinition;
+            }
             return typeDefinitionService.save(typeDefinition);
         }).ifPresent(typeDefinition -> {
             if (!typeDefinition.getId().equals(parameterRef.getTypeDefinitionId())) {
@@ -137,7 +246,13 @@ public class ParameterServiceImpl implements IParameterService {
 
 
         // 保存子元素
-        parameter.setItems(parameter.getItems().stream().map(this::save).toList());
+        parameter.setItems(parameter.getSortedAllItems().stream().map(pi->{
+            Parameter p = parameter.getMust(pi.getItemId());
+            if (Scope.isPublic(p)){
+                return p;
+            }
+            return this.save(p);
+        }).toList());
 
         List<ParameterItemRef> itemRefs = parameter.getItems().stream().map(param -> {
             // 保存子元素引用
@@ -200,6 +315,7 @@ public class ParameterServiceImpl implements IParameterService {
                     .name(td.getName())
                     .describe(td.getDescribe())
                     .type(td)
+                    .publicTypeDefinitions(typeDefinition.getType().getPublicItems())
                     .items(Optional.of(td.getType().getPrivateItems())
                             .map(itds -> itds.values()
                                     .stream()
@@ -211,6 +327,22 @@ public class ParameterServiceImpl implements IParameterService {
                     .value(createValueProvider(parent, typeDefinition))
                     .build();
         });
+    }
+
+    public Parameter create(TypeDefinition td) {
+        return create(td, new HashMap<>(), td.getType().getPublicItems());
+    }
+
+    public Parameter create(TypeDefinition td,Map<String,Parameter> existPublicParameters,Map<String,TypeDefinition> existPublicTypeDefinitions) {
+        Parameter parameter = Parameter.builder()
+                .name(td.getName())
+                .describe(td.getDescribe())
+                .type(td)
+                .build();
+        td.getAllItems().forEach((item)->{
+            parameter.addItem(create(item,existPublicParameters,existPublicTypeDefinitions));
+        });
+        return parameter;
     }
 
 

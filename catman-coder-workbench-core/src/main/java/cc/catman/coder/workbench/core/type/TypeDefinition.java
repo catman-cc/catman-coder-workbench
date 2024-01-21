@@ -1,13 +1,11 @@
 package cc.catman.coder.workbench.core.type;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import cc.catman.coder.workbench.core.Base;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.common.Mock;
 import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.type.complex.ArrayType;
@@ -15,6 +13,7 @@ import cc.catman.coder.workbench.core.type.complex.ComplexType;
 import cc.catman.coder.workbench.core.type.complex.ReferType;
 
 import cc.catman.coder.workbench.core.type.raw.RawType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -57,6 +56,21 @@ public class TypeDefinition extends Base {
      */
     protected Mock mock;
 
+    public TypeDefinition synchronize() {
+        this.type.synchronize();
+        return this;
+    }
+
+    public TypeDefinition synchronize(Map<String, TypeDefinition> typeDefinitions) {
+        this.type.synchronize(typeDefinitions);
+        return this;
+    }
+
+    public TypeDefinition populatePublicTypeDefinition(Map<String, TypeDefinition> publicTypeDefinitions) {
+        this.getType().populatePublicTypeDefinition(publicTypeDefinitions);
+        return this;
+    }
+
     /**
      * 该方法的目的是查找出,当前类型定义引用了哪些公开类型定义
      */
@@ -92,5 +106,24 @@ public class TypeDefinition extends Base {
 
         list.addAll(refers);
         return list;
+    }
+
+    public List<TypeDefinition> getAllItems() {
+        return this.getType().getAllItems();
+    }
+
+    public void addItem(TypeDefinition item) {
+        this.type.addItem(item);
+    }
+
+    public boolean contains(String id) {
+        return this.getType().contains(id);
+    }
+
+    public boolean existsInPublic(String id) {
+        return this.getType().existsInPublic(id);
+    }
+    public TypeDefinition getPublic(String id) {
+        return this.getType().getPublicItems().get(id);
     }
 }

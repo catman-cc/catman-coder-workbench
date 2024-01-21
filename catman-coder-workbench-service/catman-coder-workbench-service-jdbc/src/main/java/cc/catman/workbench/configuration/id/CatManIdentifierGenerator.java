@@ -21,6 +21,15 @@ public class CatManIdentifierGenerator implements IdentifierGenerator {
 
     protected IdGenerator idGenerator;
 
+    private static CatManIdentifierGenerator instance=new CatManIdentifierGenerator();
+
+    public static CatManIdentifierGenerator getInstance(){
+        return instance;
+    }
+
+    public static String generateId(){
+        return CatManIdentifierGenerator.instance.idGenerator.generateId().toString();
+    }
     public CatManIdentifierGenerator(IdGenerator idGenerator) {
         this.idGenerator = idGenerator;
     }
@@ -28,6 +37,7 @@ public class CatManIdentifierGenerator implements IdentifierGenerator {
     public CatManIdentifierGenerator() {
         this(new AlternativeJdkIdGenerator());
     }
+
 
     @Override
     public Serializable generate(SharedSessionContractImplementor session, Object object) throws HibernateException {

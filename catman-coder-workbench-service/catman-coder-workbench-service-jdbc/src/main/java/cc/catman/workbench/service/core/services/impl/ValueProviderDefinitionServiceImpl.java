@@ -2,7 +2,9 @@ package cc.catman.workbench.service.core.services.impl;
 
 import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.parameter.Parameter;
+import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.workbench.service.core.entity.Base;
 import cc.catman.workbench.service.core.po.ValueProviderParameterRef;
 import cc.catman.workbench.service.core.po.ValueProviderDefinitionRef;
@@ -88,6 +90,127 @@ public class ValueProviderDefinitionServiceImpl implements IValueProviderDefinit
                         List<ValueProviderDefinition> vpds = list.stream()
                                 .map(ValueProviderUsageRef::getReferencedValueProviderId)
                                 .map(this::findById)
+                                .map(Optional::orElseThrow)
+                                .toList();
+                        switch (kind){
+                            case "preValueProviders" -> provider.setPreValueProviders(vpds);
+                            case "postValueProviders" -> provider.setPostValueProviders(vpds);
+                        }
+                    });
+            Optional.ofNullable(baseService.findByKindAndBelongId("valueProvider",provider.getId())).ifPresent(base -> {
+                base.mergeInto(provider);
+            });
+            return provider;
+        });
+    }
+
+    @Override
+    public Optional<ValueProviderDefinition> findById(String id, ILoopReferenceContext context) {
+        return context.getValueProviderDefinition(id,(ctx)->{
+            return valueProviderRefRepository.findById(id).map(vpr -> {
+                // 获取值提取器定义
+                ValueProviderDefinition provider = modelMapper.map(vpr, ValueProviderDefinition.class);
+                context.add(provider);
+
+                // 获取参数定义
+                valueProviderParameterRefRepository.findAll(
+                        Example.of(ValueProviderParameterRef
+                                .builder()
+                                .belongValueProviderId(provider.getId())
+                                .build()
+                        )
+                ).forEach(valueProviderParameterRef -> {
+                    // 获取参数
+                    context.getParameter(valueProviderParameterRef.getParameterId(),(pctx)-> parameterService.findById(valueProviderParameterRef.getParameterId(),pctx)).ifPresent(parameter -> {
+                        // 填充参数
+                        if ("args".equals(valueProviderParameterRef.getFieldName())) {
+                            provider.setArgs(parameter);
+                        } else if ("result".equals(valueProviderParameterRef.getFieldName())) {
+                            provider.setResult(parameter);
+                        }
+                    });
+                });
+
+                valueProviderUsageRefRepository.findAll(Example.of(ValueProviderUsageRef
+                                .builder()
+                                .valueProviderId(provider.getId())
+                                .build()))
+                        .stream()
+                        .collect(
+                                Collectors.toMap(
+                                        ValueProviderUsageRef::getKind
+                                        , Collections::singletonList
+                                        , (v1, v2) -> Stream.concat(v1.stream(), v2.stream()).sorted(Comparator.comparingInt(ValueProviderUsageRef::getOrderIndex))
+                                                .collect(Collectors.toList())
+                                )
+                        )
+                        .forEach((kind, list) -> {
+                            List<ValueProviderDefinition> vpds = list.stream()
+                                    .map(ValueProviderUsageRef::getReferencedValueProviderId)
+                                    .map(i->findById(i,context))
+                                    .map(Optional::orElseThrow)
+                                    .toList();
+                            switch (kind){
+                                case "preValueProviders" -> provider.setPreValueProviders(vpds);
+                                case "postValueProviders" -> provider.setPostValueProviders(vpds);
+                            }
+                        });
+                Optional.ofNullable(baseService.findByKindAndBelongId("valueProvider",provider.getId())).ifPresent(base -> {
+                    base.mergeInto(provider);
+                });
+                return provider;
+            });
+        });
+    }
+
+    @Override
+    public Optional<ValueProviderDefinition> findById(String id, Map<String, ValueProviderDefinition> existPublicValueProviderDefinitions, Map<String, Parameter> existPublicParameterDefinitions, Map<String, TypeDefinition> existPublicTypeDefinitions) {
+        // 获取值提取器
+        if (existPublicValueProviderDefinitions.containsKey(id)) {
+            return Optional.of(existPublicValueProviderDefinitions.get(id));
+        }
+
+        return valueProviderRefRepository.findById(id).map(vpr -> {
+            // 获取值提取器定义
+            ValueProviderDefinition provider = modelMapper.map(vpr, ValueProviderDefinition.class);
+            existPublicValueProviderDefinitions.put(provider.getId(), provider);
+
+            // 获取参数定义
+            valueProviderParameterRefRepository.findAll(
+                    Example.of(ValueProviderParameterRef
+                            .builder()
+                            .belongValueProviderId(provider.getId())
+                            .build()
+                    )
+            ).forEach(valueProviderParameterRef -> {
+                // 获取参数
+                parameterService.findById(valueProviderParameterRef.getParameterId(),existPublicValueProviderDefinitions,existPublicParameterDefinitions,existPublicTypeDefinitions).ifPresent(parameter -> {
+                    // 填充参数
+                    if ("args".equals(valueProviderParameterRef.getFieldName())) {
+                        provider.setArgs(parameter);
+                    } else if ("result".equals(valueProviderParameterRef.getFieldName())) {
+                        provider.setResult(parameter);
+                    }
+                });
+            });
+
+            valueProviderUsageRefRepository.findAll(Example.of(ValueProviderUsageRef
+                            .builder()
+                            .valueProviderId(provider.getId())
+                            .build()))
+                    .stream()
+                    .collect(
+                            Collectors.toMap(
+                                    ValueProviderUsageRef::getKind
+                                    , Collections::singletonList
+                                    , (v1, v2) -> Stream.concat(v1.stream(), v2.stream()).sorted(Comparator.comparingInt(ValueProviderUsageRef::getOrderIndex))
+                                            .collect(Collectors.toList())
+                            )
+                    )
+                    .forEach((kind, list) -> {
+                        List<ValueProviderDefinition> vpds = list.stream()
+                                .map(ValueProviderUsageRef::getReferencedValueProviderId)
+                                .map(i->findById(i,existPublicValueProviderDefinitions,existPublicParameterDefinitions,existPublicTypeDefinitions))
                                 .map(Optional::orElseThrow)
                                 .toList();
                         switch (kind){

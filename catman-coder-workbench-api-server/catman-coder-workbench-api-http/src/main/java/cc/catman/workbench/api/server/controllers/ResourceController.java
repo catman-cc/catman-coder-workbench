@@ -114,4 +114,20 @@ public class ResourceController {
         });
         return true;
     }
+
+    @PutMapping("/move/{id}")
+    public boolean move(@PathVariable String id
+            ,@RequestParam(name = "parentId") String parentId
+            ,@RequestParam(required = false,name = "previousId") String previousId
+    ,@RequestParam(required = false,name = "nextId") String nextId
+                        ,@RequestParam(required = false,name = "index") Integer index){
+
+        resourceService.move(id,parentId,previousId,nextId,index);
+        return true;
+    }
+
+    @GetMapping("/flush-sort/{parentId}")
+    public boolean flushSort(@PathVariable String parentId){
+        return resourceService.flushSortByParentId(parentId,true);
+    }
 }

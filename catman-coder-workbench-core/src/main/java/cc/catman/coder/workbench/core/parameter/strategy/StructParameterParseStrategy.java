@@ -78,6 +78,7 @@ public class StructParameterParseStrategy implements IParameterParseStrategy {
         Map<String, Object> presetVariables = new HashMap<>();
         presetVariables.put("parent",preparseMap);
         ExpressionParser parser = valueProviderContext.createExpressionParser("SpEL");
+        // 考虑此处,如何递归解析子参数
         parameter.getItems()
                 .forEach(item -> {
                     ValueProviderDefinition itemValueProviderDefinition = Optional.ofNullable(item.getValue()).orElse(item.getDefaultValue());

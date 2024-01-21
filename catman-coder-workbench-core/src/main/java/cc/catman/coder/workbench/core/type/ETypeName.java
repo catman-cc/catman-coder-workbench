@@ -16,6 +16,7 @@ public enum ETypeName {
     MAP("map", false, false, false, false, false, false, false, false, false),
     SLOT("slot", false, false, false, false, false, false, false, false, false),
     REFER("refer", false, false, false, false, false, false, false, false, false),
+    ENUM("enum", false, false, false, false, false, false, false, false, false),
     ;
     private String typeName;
     private boolean raw;

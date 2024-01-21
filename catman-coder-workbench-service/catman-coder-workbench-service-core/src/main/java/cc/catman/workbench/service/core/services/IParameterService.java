@@ -2,7 +2,10 @@ package cc.catman.workbench.service.core.services;
 
 import cc.catman.coder.workbench.core.parameter.Parameter;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
+import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -22,6 +25,11 @@ public interface IParameterService {
      * @return 参数定义
      */
     Optional<Parameter> findById(String id);
+
+    Optional<Parameter> findById(String id, ILoopReferenceContext context);
+
+
+    Optional<Parameter> findById(String id, Map<String, ValueProviderDefinition> existPublicValueProviderDefinitions, Map<String,Parameter> existPublicParameters, Map<String,TypeDefinition> existPublicTypeDefinitions);
 
     Parameter save(Parameter parameter);
 

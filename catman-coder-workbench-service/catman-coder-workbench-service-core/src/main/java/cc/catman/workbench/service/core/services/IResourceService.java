@@ -80,4 +80,8 @@ public interface IResourceService {
     void deleteById(String id);
 
     void deepWithHandler(String id, Consumer<Resource> handler);
+
+    void move(String id, String parentId, String previousId,String nextId,Integer index);
+
+    boolean flushSortByParentId(String parentId,boolean deep);
 }

@@ -41,6 +41,10 @@ public class Resource extends Base{
     private String resourceId;
 
     private String parentId;
+    /**
+     * 限制创建的子资源类型,多个类型用逗号分隔,如果为空,则表示不限制
+     */
+    private List<String> supportedChildKinds;
 
     /**
      * 如果资源为leaf资源,则表示该资源无法再继续向下遍历
@@ -56,6 +60,13 @@ public class Resource extends Base{
      * 资源配置,也可以直接存储一些简单资源的配置信息
      */
     private String extra;
+
+    /**
+     * 资源前面的资源,如果资源前面的资源不存在,则表示该资源是第一个资源
+     */
+    private String previousId;
+
+    private String nextId;
 
     public void addChildren(Resource resource) {
        if (children == null) {

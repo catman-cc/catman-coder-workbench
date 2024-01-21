@@ -52,4 +52,8 @@ public class ResourceRef {
 
     @Column(length = 1024*1024*20)
     private String extra;
+
+    private String previousId;
+
+    private String nextId;
 }

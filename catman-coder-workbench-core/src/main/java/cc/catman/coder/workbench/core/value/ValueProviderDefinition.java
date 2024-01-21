@@ -3,11 +3,14 @@ package cc.catman.coder.workbench.core.value;
 import cc.catman.coder.workbench.core.Base;
 import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.parameter.Parameter;
+import cc.catman.coder.workbench.core.type.TypeDefinition;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 值提取器定义
@@ -59,4 +62,13 @@ public class ValueProviderDefinition extends Base {
      */
     @Builder.Default
     private List<ValueProviderDefinition> postValueProviders=new ArrayList<>();
+
+    @Builder.Default
+    private Map<String,ValueProviderDefinition> publicValueProviderDefinitions=new HashMap<>();
+
+    @Builder.Default
+    private Map<String,Parameter> publicParameters=new HashMap<>();
+
+    @Builder.Default
+    private Map<String, TypeDefinition> publicTypeDefinitions=new HashMap<>();
 }

@@ -1,4 +1,4 @@
-package cc.catman.workbench.api.server.configuration.resources;
+package cc.catman.workbench.configuration;
 
 import cc.catman.workbench.service.core.entity.Resource;
 import cc.catman.workbench.service.core.entity.ResourceCreate;
@@ -8,14 +8,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SimpleConfigResourceDetailsLoader implements ResourceDetailsLoader {
+public class WikiResourceDetailsLoader implements ResourceDetailsLoader {
     @javax.annotation.Resource
     private ModelMapper modelMapper;
     @Override
     public boolean support(Resource resource) {
-        return "HttpValueProviderQuicker".equals(resource.getKind());
+        return "wiki".equals(resource.getKind());
     }
-
 
     @Override
     public Object load(Resource resource) {
