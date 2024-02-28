@@ -12,7 +12,7 @@ import java.util.Optional;
 public class DefaultResourceDetailsLoaderManager implements ResourceDetailsLoaderManager{
 
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private List<ResourceDetailsLoader> resourceDetailsLoaderManagers;
 
     @Override

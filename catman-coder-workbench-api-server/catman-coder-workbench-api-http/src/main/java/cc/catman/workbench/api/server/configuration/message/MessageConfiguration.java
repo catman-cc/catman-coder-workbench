@@ -5,7 +5,7 @@ import cc.catman.coder.workbench.core.message.channel.DefaultMessageChannel;
 import cc.catman.coder.workbench.core.message.channel.DefaultChannelFactory;
 import cc.catman.coder.workbench.core.message.channel.DefaultChannelManager;
 import cc.catman.coder.workbench.core.message.channel.HttpValueProviderExecutorMessageChannel;
-import cc.catman.coder.workbench.core.message.exchange.DefaultMessageExchange;
+import cc.catman.coder.workbench.core.message.exchange.Default1MessageExchange;
 import cc.catman.coder.workbench.core.value.ValueProviderRegistry;
 import cc.catman.workbench.api.server.websocket.run.value.ExecutorMessageSubscriber;
 import cc.catman.coder.workbench.core.value.ValueProviderExecutor;
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.support.GenericConversionService;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Configuration
 public class MessageConfiguration {
@@ -62,7 +62,7 @@ public class MessageConfiguration {
 
     @Bean
     public MessageExchange messageExchange() {
-        DefaultMessageExchange exchange = DefaultMessageExchange.builder()
+        Default1MessageExchange exchange = Default1MessageExchange.builder()
                 .modelMapper(modelMapper)
                 .objectMapper(objectMapper)
                 .build();

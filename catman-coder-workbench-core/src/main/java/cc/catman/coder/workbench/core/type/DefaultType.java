@@ -8,6 +8,7 @@ import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.entity.Entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,22 +35,17 @@ public class DefaultType implements Type {
 
     @Getter
     @Setter
-    @JsonIgnore
-    @Builder.Default
-    private transient Map<String,TypeDefinition> publicItems = new HashMap<>();
-
-    @Getter
-    @Setter
     @Builder.Default
     protected List<TypeItem> sortedAllItems = new ArrayList<>();
 
     @Getter
     @Setter
     @Builder.Default
+    @JsonIgnore
     protected transient ILoopReferenceContext context= DefaultLoopReferenceContext.create();
 
     public DefaultType add(TypeDefinition typeDefinition) {
-        privateItems.put(typeDefinition.getId(),typeDefinition);
+//        privateItems.put(typeDefinition.getId(),typeDefinition);
         context.add(typeDefinition);
         return this;
     }
@@ -74,72 +70,51 @@ public class DefaultType implements Type {
         return null;
     }
 
-    public void synchronize(){
-        this.populatePublicTypeDefinition(new HashMap<>());
-    }
-    public  void synchronize(Map<String,TypeDefinition> typeDefinitions){
-        this.populatePublicTypeDefinition(typeDefinitions);
-    }
-    public void populatePublicTypeDefinition(Map<String,TypeDefinition> publicTypeDefinitions) {
-        if (this.publicItems.size()>0){
-            this.publicItems.forEach((key,value)->{
-                if (publicTypeDefinitions.containsKey(key)){
-                    TypeDefinition typeDefinition = publicTypeDefinitions.get(key);
-                    if (!typeDefinition.equals(value)){
-                        log.warn("typeDefinition is not equals, key:{}, value:{}, typeDefinition:{}",key,value,typeDefinition);
-                    }
-                }else {
-                    publicTypeDefinitions.put(key,value);
-                }
-            });
-        }
-        this.publicItems = publicTypeDefinitions;
-        // 此处只同步了私有类型,没有同步公开类型,这就意味着public的定义中的publicItems可能是不完整的
-        this.privateItems.values()
-                .forEach(i -> i.populatePublicTypeDefinition(publicTypeDefinitions));
 
-        // 同步公开类型,这样就可以保证publicItems是完整的
-        this.publicItems.values()
-                .forEach(i -> {
-                    if(i.getType().publicItems.equals(this.publicItems)){
-                        return;
-                    }
-                    i.populatePublicTypeDefinition(publicTypeDefinitions);
-                });
-
-    }
+    @JsonIgnore
     public TypeDefinition getItem(String id) {
-       return Optional.ofNullable( this.privateItems.get(id))
-               .orElseGet(()-> this.publicItems.get(id));
+        return this.context.getTypeDefinition(id).orElse(null);
+//       return Optional.ofNullable( this.privateItems.get(id))
+//               .orElseGet(()-> this.context.getTypeDefinition(id).orElse(null));
     }
-
+    @JsonIgnore
     public TypeDefinition getItem(TypeItem typeItem) {
         return this.getItem(typeItem.getItemId());
     }
-
+    @JsonIgnore
     public TypeDefinition getMust(String id) {
         return Optional.ofNullable(this.getItem(id))
                 .orElseThrow(()-> new RuntimeException("can not find typeDefinition by id:"+id));
     }
+    @JsonIgnore
     public TypeDefinition getMust(TypeItem typeItem) {
         return this.getMust(typeItem.getItemId());
     }
-
+    @JsonIgnore
     public List<TypeDefinition> getAllItems() {
-        return this.sortedAllItems.stream().map(this::getMust).toList();
+        return this.sortedAllItems.stream().map(this::getItem).toList();
     }
     public void addItem(TypeDefinition item) {
-        if (item.getScope().isPublic()){
-            this.publicItems.put(item.getId(),item);
-        }else{
-            this.privateItems.put(item.getId(),item);
+        if (item == null) {
+            return;
         }
+        this.context.add(item);
+        if(this.sortedAllItems.stream().anyMatch(i->i.getItemId().equals(item.getId()))){
+            return;
+        }
+        this.sortedAllItems.add(TypeItem.builder().itemId(item.getId()).build());
+
+//        if (item.getScope().isPublic()){
+//           this.context.add(item);
+//        }else{
+//            this.privateItems.put(item.getId(),item);
+//        }
     }
     public boolean contains(String id) {
         return Optional.ofNullable(this.getItem(id)).isPresent();
     }
 
     public boolean existsInPublic(String id) {
-        return this.publicItems.containsKey(id);
+        return this.context.includeTypeDefinition(id);
     }
 }

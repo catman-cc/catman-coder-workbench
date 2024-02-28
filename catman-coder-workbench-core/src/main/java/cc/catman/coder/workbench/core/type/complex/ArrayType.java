@@ -6,6 +6,7 @@ import cc.catman.coder.workbench.core.type.DefaultType;
 import cc.catman.coder.workbench.core.type.Type;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.type.TypeUtils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -32,14 +33,15 @@ public class ArrayType extends ComplexType {
         return Constants.Type.TYPE_NAME_ARRAY;
     }
 
+    @JsonIgnore
     public Type getElement() {
-        return privateItems.size() > 0 ? privateItems.values().stream().findFirst().map(TypeDefinition::getType).orElse(null) : null;
+        return !getAllItems().isEmpty() ? getAllItems().stream().findFirst().map(TypeDefinition::getType).orElse(null) : null;
     }
-
+    @JsonIgnore
     public ArrayType setElement(DefaultType type) {
         String id= UUID.randomUUID().toString();
-        this.privateItems.put(id,TypeDefinition.builder()
-                        .id(id)
+        this.addItem(TypeDefinition.builder()
+                .id(id)
                 .name(ELEMENT_NAME)
                 .type(type)
                 .build());

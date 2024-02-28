@@ -22,12 +22,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("resource")
 public class ResourceController {
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ModelMapper modelMapper;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private IResourceService resourceService;
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ResourceDetailsLoaderManager resourceDetailsLoaderManager;
 
     private DefaultLabelSelectorContext labelSelectorContext=DefaultLabelSelectorContext.createDefault();

@@ -1,13 +1,13 @@
 package cc.catman.workbench.service.core.services.impl;
 
-import cc.catman.workbench.service.core.repossitory.IGroupRepository;
+import cc.catman.workbench.service.core.repossitory.base.IGroupRepository;
 import cc.catman.workbench.service.core.entity.Group;
-import cc.catman.workbench.service.core.po.GroupRef;
+import cc.catman.workbench.service.core.po.base.GroupRef;
 import cc.catman.workbench.service.core.services.IGroupService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Optional;
 
 @Service

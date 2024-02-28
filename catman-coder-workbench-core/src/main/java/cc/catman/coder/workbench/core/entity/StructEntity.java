@@ -20,7 +20,7 @@ public class StructEntity implements Entity<Map<String,Object>>{
 
     public StructEntity(StructType type) {
         this.type = type;
-        type.getPrivateItems().values().forEach(d->{
+        type.getAllItems().forEach(d->{
             entities.put(d.getName(),null);
         });
     }
@@ -55,7 +55,7 @@ public class StructEntity implements Entity<Map<String,Object>>{
     @Override
     public Map<String,Object> toObject(){
         Map<String,Object> obj=new LinkedHashMap<>();
-        type.getPrivateItems().values().forEach(td->{
+        type.getAllItems().forEach(td->{
             Entity<?> entity = this.entities.get(td.getName());
             obj.put(td.getName(),Optional.ofNullable(entity).map(Entity::toObject).orElse(null));
         });

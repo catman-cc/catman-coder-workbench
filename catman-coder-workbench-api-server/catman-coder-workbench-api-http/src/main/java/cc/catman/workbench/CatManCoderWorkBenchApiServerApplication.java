@@ -7,7 +7,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 @SpringBootApplication
 @EnableWebSocket
-@EnableJpaRepositories()
 public class CatManCoderWorkBenchApiServerApplication {
 
     public static void main(String[] args) {

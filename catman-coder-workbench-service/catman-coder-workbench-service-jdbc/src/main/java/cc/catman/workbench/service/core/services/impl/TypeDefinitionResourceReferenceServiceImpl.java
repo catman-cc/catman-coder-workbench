@@ -11,9 +11,9 @@ import java.util.List;
 
 @Component
 public class TypeDefinitionResourceReferenceServiceImpl implements ResourceReferenceService {
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ITypeDefinitionService typeDefinitionService;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private IResourceService  resourceService;
 
     @Override

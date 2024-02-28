@@ -4,9 +4,9 @@ import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.value.template.ValueProviderTemplate;
 import cc.catman.coder.workbench.core.value.template.ValueProviderTemplateManager;
 import cc.catman.workbench.service.core.services.IValueProviderDefinitionTemplateService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Service

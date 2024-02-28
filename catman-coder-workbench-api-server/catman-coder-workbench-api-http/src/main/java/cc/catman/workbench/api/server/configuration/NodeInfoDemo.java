@@ -1,5 +1,6 @@
 package cc.catman.workbench.api.server.configuration;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -10,8 +11,7 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OSProcess;
 import oshi.software.os.OperatingSystem;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.time.Duration;
 
 @Component

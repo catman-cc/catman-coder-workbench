@@ -1,18 +1,19 @@
 package cc.catman.workbench.service.core.services.impl;
 
 import cc.catman.coder.workbench.core.Constants;
+import cc.catman.coder.workbench.core.DefaultLoopReferenceContext;
 import cc.catman.coder.workbench.core.SimpleInfo;
 import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.type.*;
 import cc.catman.plugin.core.label.filter.AndLabelFilter;
 import cc.catman.plugin.core.label.filter.LabelFilterBuilder;
 import cc.catman.coder.workbench.core.ILoopReferenceContext;
-import cc.catman.workbench.service.core.po.TypeDefinitionPO;
-import cc.catman.workbench.service.core.po.TypeDefinitionTypeItemRef;
-import cc.catman.workbench.service.core.po.TypeDefinitionTypeRef;
-import cc.catman.workbench.service.core.repossitory.ITypeDefinitionRepository;
-import cc.catman.workbench.service.core.repossitory.ITypeDefinitionTypeItemRefRepository;
-import cc.catman.workbench.service.core.repossitory.ITypeDefinitionTypeRefRepository;
+import cc.catman.workbench.service.core.po.typeDefintion.TypeDefinitionPO;
+import cc.catman.workbench.service.core.po.typeDefintion.TypeDefinitionTypeItemRef;
+import cc.catman.workbench.service.core.po.typeDefintion.TypeDefinitionTypeRef;
+import cc.catman.workbench.service.core.repossitory.typeDefinition.ITypeDefinitionRepository;
+import cc.catman.workbench.service.core.repossitory.typeDefinition.ITypeDefinitionTypeItemRefRepository;
+import cc.catman.workbench.service.core.repossitory.typeDefinition.ITypeDefinitionTypeRefRepository;
 import cc.catman.workbench.service.core.services.IBaseService;
 import cc.catman.workbench.service.core.entity.Base;
 import cc.catman.workbench.service.core.services.ITypeDefinitionService;
@@ -22,12 +23,12 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.IdGenerator;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -52,11 +53,12 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
     private ITypeDefinitionTypeItemRefRepository typeDefinitionTypeItemRefRepository;
 
     @Override
-    public TypeDefinition save(TypeDefinition typeDefinition) {
+    @Transactional
+    public TypeDefinition save(TypeDefinition typeDefinition, ILoopReferenceContext context) {
         if (log.isInfoEnabled()) {
             log.info("保存类型定义:{}", typeDefinition);
         }
-
+        typeDefinition.getContext().merge(context);
         // 查找是否已存在对应的类型定义,如果存在,则判断是否需要更新本体数据
         TypeDefinitionPO currentTypeDefinitionPO = modelMapper.map(typeDefinition, TypeDefinitionPO.class);
         TypeDefinitionPO oldTypeDefinitionPO = typeDefinitionRepository.findById(typeDefinition.getId()).orElseGet(() -> TypeDefinitionPO.builder().build());
@@ -84,10 +86,11 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
         DefaultType type = typeDefinition.getType();
         // 比较类型定义关联是否有变化
         TypeDefinitionTypeRef typeDefinitionTypeRef = typeDefinitionTypeRefRepository
-                .findOne(
-                        Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(currentTypeDefinitionPO.getId()).build())
-                )
-                .orElseGet(() -> (TypeDefinitionTypeRef.builder().id(idGenerator.generateId().toString()).typeName("").build()));
+                .findOne(Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(currentTypeDefinitionPO.getId()).build()))
+                .orElseGet(() ->{
+                    TypeDefinitionTypeRef tdtf = TypeDefinitionTypeRef.builder().id(idGenerator.generateId().toString()).typeName("").build();
+                    return tdtf;
+                });
 
         String typeName = typeDefinitionTypeRef.getTypeName();
         if (!typeName.equals(type.getTypeName())) {
@@ -137,13 +140,14 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                 TypeDefinition anyType = TypeDefinition.builder()
                         .name("elements").type(new AnyType()).build();
                 anyType.setId(idGenerator.generateId().toString());
-                type.getPrivateItems().put(anyType.getId(), anyType);
+                type.addItem(anyType);
+//                type.getPrivateItems().put(anyType.getId(), anyType);
                 type.getSortedAllItems().add(TypeItem.builder()
                         .name("elements")
                         .itemId(anyType.getId())
                         .build());
             } else if (sortedItems.size() > 1) {
-                throw new IllegalArgumentException("数组类型只能有一个元素");
+                throw new IllegalArgumentException("数组类型只能有一个元素,名称:"+typeDefinition.getName()+",当前元素数量:" + sortedItems.size());
             } else if (sortedItems.stream().filter(item -> !item.getName().equals("elements")).count() > 0) {
                 throw new IllegalArgumentException("数组类型的元素名称必须为elements");
             }
@@ -157,33 +161,24 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                 log.warn("基础类型不持有子类型定义,存在的子元素类型定义,将被忽略,{}", type.getSortedAllItems());
             }
         }
-        Map<String, TypeDefinition> privateItems = type.getPrivateItems();
 
-        // 注意,所有的子类型定义,都必须存在id,否则无法进行关联
-        Map<String, TypeDefinition> privateItemMap = privateItems.values().stream()
-                .peek(t -> {
-                    if (Objects.isNull(t.getId())) {
-                        t.setId(idGenerator.generateId().toString());
-                    }
-                })
-                .collect(Collectors.toMap(TypeDefinition::getId, (t) -> t));
-
-        Map<String, TypeDefinition> newPrivateItems = new HashMap<>();
         for (int i = 0; i < type.getSortedAllItems().size(); i++) {
             TypeItem typeItem = type.getSortedAllItems().get(i);
             if (!Scope.PUBLIC.equals(typeItem.getItemScope())) {
                 // 私有类型定义,需要进行保存操作.
                 if (!Objects.isNull(typeItem.getItemId())) {
-                    // 校验是否存在name
-                    if (Objects.isNull(typeItem.getName())) {
-                        throw new IllegalArgumentException("类型定义的子元素必须存在id或者name");
-                    }
                     // 判断是否为私有类型定义
-                    if (privateItemMap.containsKey(typeItem.getItemId())) {
+                    if (type.contains(typeItem.getItemId())) {
                         // 说明是一个私有类型定义,需要执行保存操作
-                        TypeDefinition saved = save(privateItemMap.get(typeItem.getItemId()));
-                        typeItem.setItemId(saved.getId());
-                        newPrivateItems.put(saved.getId(), saved);
+                        TypeDefinition itemTd = type.getMust(typeItem.getItemId());
+                        if (!Scope.isPublic(itemTd)){
+                            TypeDefinition saved = save(itemTd,context);
+                            typeItem.setItemId(saved.getId());
+                            type.addItem(saved);
+                        }else {
+                            typeItem.setItemScope(Scope.PUBLIC);
+                        }
+
                     } else {
                         // 说明是一个公开类型定义,不需要执行保存操作,但是需要验证引用的类型定义是否存在
                         findById(typeItem.getItemId()).orElseThrow(() -> new IllegalArgumentException("无法找到被引用的的类型定义,id:" + typeItem.getItemId()));
@@ -191,15 +186,7 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                         typeItem.setItemScope(Scope.PUBLIC);
                     }
                 } else if (!Objects.isNull(typeItem.getName())) {
-                    // 说明是一个私有类型定义,需要执行保存操作
-                    // 根据name尝试获取类型定义
-                    TypeDefinition typeDefinitionByName = privateItems.values().stream()
-                            .filter(item -> typeItem.getName().equals(item.getName()))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalArgumentException("无法找到被引用的的类型定义,name:" + typeItem.getName()));
-                    TypeDefinition saved = save(typeDefinitionByName);
-                    typeItem.setItemId(saved.getId());
-                    newPrivateItems.put(saved.getId(), saved);
+                    throw new IllegalArgumentException("类型定义的子元素必须存在id");
                 } else {
                     throw new IllegalArgumentException("类型定义的子元素必须存在id或者name");
                 }
@@ -216,7 +203,6 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                 log.info("保存类型定义的关联数据:{},关联关系:{}", typeItem, tdtir);
             }
         }
-        typeDefinition.getType().setPrivateItems(newPrivateItems);
         // 更新缓存
 //        caffeineCache.put(typeDefinition.getId(), typeDefinition);
         return typeDefinition;
@@ -224,21 +210,9 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
 
     @Override
     public Optional<TypeDefinition> findById(String id) {
-        return typeDefinitionRepository.findById(id).map(typeDefinitionPO -> this.convertToTypeDefinition(typeDefinitionPO,new HashMap<>()));
+        return typeDefinitionRepository.findById(id).map(typeDefinitionPO -> this.convertToTypeDefinition(typeDefinitionPO,DefaultLoopReferenceContext.create()));
     }
 
-    @Override
-    public Optional<TypeDefinition> findById(String id, TypeDefinition parent) {
-        if (Optional.ofNullable(parent).isEmpty()){
-            return findById(id);
-        }
-        if (parent.existsInPublic(id)){
-            return Optional.ofNullable(parent.getPublic(id));
-        }
-        return typeDefinitionRepository
-                .findById(id)
-                .map(typeDefinitionPO -> this.convertToTypeDefinition(typeDefinitionPO,parent.getType().getPublicItems()));
-    }
 
     @Override
     public Optional<TypeDefinition> findById(String id, ILoopReferenceContext context) {
@@ -248,32 +222,26 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                         .map(typeDefinitionPO -> this.convertToTypeDefinition(typeDefinitionPO,ctx)));
     }
 
-    @Override
-    public Optional<TypeDefinition> findById(String id, Map<String, TypeDefinition> existPublicTypeDefinitions) {
-        if (existPublicTypeDefinitions.containsKey(id)){
-            return Optional.ofNullable(existPublicTypeDefinitions.get(id));
-        }
-        return typeDefinitionRepository.findById(id).map(typeDefinitionPO -> this.convertToTypeDefinition(typeDefinitionPO,existPublicTypeDefinitions));
-    }
 
     protected TypeDefinition convertToTypeDefinition(TypeDefinitionPO typeDefinitionPO,ILoopReferenceContext context) {
         TypeDefinition typeDefinition = modelMapper.map(typeDefinitionPO, TypeDefinition.class);
+//        typeDefinition.setContext(context);
         context.add(typeDefinition);
-        Map<String,TypeDefinition> existTypeDefinitions=context.getTypeDefinitions();
 
         // 处理类型数据
         return typeDefinitionTypeRefRepository
                 .findOne(Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(typeDefinitionPO.getId()).build()))
                 .map(typeDefinitionTypeRef -> {
                     String typeName = typeDefinitionTypeRef.getTypeName();
-                    Map<String, TypeDefinition> privateItems = new HashMap<>();
                     List<TypeItem> sortedAllItems = new ArrayList<>();
                     DefaultType type = conversionService.convert(DefaultType.builder()
                             .typeName(typeName)
                             .context(context)
-                            .publicItems(existTypeDefinitions)
-                            .sortedAllItems(sortedAllItems)
-                            .privateItems(privateItems).build(), DefaultType.class);
+                            .build(), DefaultType.class);
+                    if (Objects.isNull(type)) {
+                        throw new IllegalArgumentException("无法找到对应的类型定义:" + typeName);
+                    }
+                    type.setSortedAllItems(sortedAllItems);
                     typeDefinition.setType(type);
 
                     // 继续查找子类型定义
@@ -302,59 +270,6 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                             TypeDefinitionPO tpo = typeDefinitionRepository.findById(typeItem.getReferencedTypeDefinitionId())
                                     .orElseThrow(() -> new IllegalArgumentException("无法找到被引用的的类型定义,id:" + typeItem.getReferencedTypeDefinitionId()));
                             TypeDefinition item = convertToTypeDefinition(tpo,context);
-                            typeDefinition.addItem(item);
-                        }
-                    });
-
-                    // 处理base数据
-                    Base baseInfo = baseService.findByKindAndBelongId("typeDefinition", typeDefinitionPO.getId());
-                    return Optional.ofNullable(baseInfo).map(base -> {
-                        base.mergeInto(typeDefinition);
-                        return typeDefinition;
-                    }).orElse(typeDefinition);
-                }).orElse(null);
-    }
-
-    protected TypeDefinition convertToTypeDefinition(TypeDefinitionPO typeDefinitionPO,Map<String,TypeDefinition> existTypeDefinitions) {
-        TypeDefinition typeDefinition = modelMapper.map(typeDefinitionPO, TypeDefinition.class);
-        // 处理类型数据
-        return typeDefinitionTypeRefRepository
-                .findOne(Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(typeDefinitionPO.getId()).build()))
-                .map(typeDefinitionTypeRef -> {
-                    String typeName = typeDefinitionTypeRef.getTypeName();
-                    Map<String, TypeDefinition> privateItems = new HashMap<>();
-                    List<TypeItem> sortedAllItems = new ArrayList<>();
-                    DefaultType type = conversionService.convert(DefaultType.builder()
-                            .typeName(typeName)
-                            .publicItems(existTypeDefinitions)
-                            .sortedAllItems(sortedAllItems)
-                            .privateItems(privateItems).build(), DefaultType.class);
-                    typeDefinition.setType(type);
-
-                    // 继续查找子类型定义
-                    // 获取所有被引用的类型定义
-                    List<TypeDefinitionTypeItemRef> typeItems = typeDefinitionTypeItemRefRepository
-                            .findAll(
-                                    Example.of(
-                                            TypeDefinitionTypeItemRef
-                                                    .builder()
-                                                    .typeDefinitionTypeId(typeDefinitionTypeRef.getId()
-                                                    )
-                                                    .build())
-                                    , Sort.by(Sort.Direction.ASC, "orderIndex")
-                            );
-
-                    typeItems.forEach(typeItem -> {
-                        TypeItem newItem = TypeItem.builder()
-                                .name(typeItem.getName())
-                                .itemId(typeItem.getReferencedTypeDefinitionId())
-                                .itemScope(Optional.ofNullable(typeItem.getItemScope()).map(Scope::valueOf).orElse(Scope.PRIVATE))
-                                .build();
-                        sortedAllItems.add(newItem);
-                        if (!typeDefinition.contains(newItem.getItemId())) {
-                            TypeDefinitionPO tpo = typeDefinitionRepository.findById(typeItem.getReferencedTypeDefinitionId())
-                                    .orElseThrow(() -> new IllegalArgumentException("无法找到被引用的的类型定义,id:" + typeItem.getReferencedTypeDefinitionId()));
-                            TypeDefinition item = convertToTypeDefinition(tpo,existTypeDefinitions);
                             typeDefinition.addItem(item);
                         }
                     });
@@ -407,7 +322,7 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
     public List<TypeDefinition> list(TypeDefinition typeDefinition) {
         return typeDefinitionRepository.findAll()
                 .stream()
-                .map(v->this.convertToTypeDefinition(v,new HashMap<>()))
+                .map(v->this.convertToTypeDefinition(v, DefaultLoopReferenceContext.create()))
                 .filter(td -> Scope.PUBLIC.equals(td.getScope()))
                 .toList();
     }

@@ -13,42 +13,42 @@ public class GenericType  extends DefaultType{
 
     @Override
     public boolean isRaw() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isRaw());
+        return  this.getAllItems().stream().anyMatch(item->item.getType().isRaw());
     }
 
     @Override
     public boolean isArray() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isArray());
+        return  this.getAllItems().stream().anyMatch(item->item.getType().isArray());
     }
 
     @Override
     public boolean isComplex() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isComplex());
+        return this.getAllItems().stream().anyMatch(item->item.getType().isComplex());
     }
 
     @Override
     public boolean isStruct() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isStruct());
+        return this.getAllItems().stream().anyMatch(item->item.getType().isStruct());
     }
 
     @Override
     public boolean isRefer() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isRefer());
+        return this.getAllItems().stream().anyMatch(item->item.getType().isRefer());
     }
 
     @Override
     public boolean isMap() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isMap());
+        return this.getAllItems().stream().anyMatch(item->item.getType().isMap());
     }
 
     @Override
     public boolean isSlot() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isSlot());
+        return this.getAllItems().stream().anyMatch(item->item.getType().isSlot());
     }
 
     @Override
     public boolean isAny() {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isAny());
+        return this.getAllItems().stream().anyMatch(item->item.getType().isAny());
     }
 
     @Override
@@ -58,11 +58,11 @@ public class GenericType  extends DefaultType{
 
     @Override
     public boolean canConvert(Type targetType) {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().canConvert(targetType));
+        return this.getAllItems().stream().anyMatch(item->item.getType().canConvert(targetType));
     }
 
     @Override
     public boolean isType(Type target) {
-        return this.privateItems.values().stream().anyMatch(item->item.getType().isType(target));
+        return this.getAllItems().stream().anyMatch(item->item.getType().isType(target));
     }
 }

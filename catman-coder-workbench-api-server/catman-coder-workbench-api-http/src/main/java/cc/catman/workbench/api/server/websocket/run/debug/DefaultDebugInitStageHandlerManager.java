@@ -2,7 +2,7 @@ package cc.catman.workbench.api.server.websocket.run.debug;
 
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 

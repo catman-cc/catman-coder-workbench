@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import cc.catman.coder.workbench.core.apis.repositories.JobDefinitionRepository;
 import org.springframework.stereotype.Service;

@@ -14,7 +14,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Component
 public class DebuggableWebSocketHandler extends AbstractWebSocketHandler {

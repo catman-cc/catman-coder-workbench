@@ -6,7 +6,8 @@
     <parent>
         <groupId>cc.catman.coder</groupId>
         <artifactId>catman-coder-workbench-api-server</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.2-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>catman-coder-workbench-api-http</artifactId>
@@ -31,5 +32,30 @@
             <artifactId>oshi-core</artifactId>
             <version>6.4.8</version>
         </dependency>
+        <dependency>
+            <groupId>cc.catman.coder</groupId>
+            <artifactId>catman-coder-workbench-message-netty</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <finalName>${project.artifactId}</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

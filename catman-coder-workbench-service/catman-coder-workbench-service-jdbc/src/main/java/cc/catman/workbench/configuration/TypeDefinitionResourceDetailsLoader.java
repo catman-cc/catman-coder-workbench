@@ -21,11 +21,11 @@ import java.util.UUID;
 
 @Component
 public class TypeDefinitionResourceDetailsLoader implements ResourceDetailsLoader {
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ModelMapper modelMapper;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ITypeDefinitionSchemaService typeDefinitionSchemaService;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ITypeDefinitionService typeDefinitionService;
     @Override
     public boolean support(Resource resource) {

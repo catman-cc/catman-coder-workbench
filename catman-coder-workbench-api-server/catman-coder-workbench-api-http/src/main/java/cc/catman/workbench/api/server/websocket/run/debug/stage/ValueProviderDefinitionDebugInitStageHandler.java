@@ -5,7 +5,7 @@ import cc.catman.workbench.api.server.websocket.run.debug.IDebugInitStageHandler
 import cc.catman.workbench.api.server.websocket.run.debug.IDebugSession;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.Session;
+import jakarta.websocket.Session;
 
 /**
  * 交换ValueProviderDefinition信息调试会话初始化阶段处理器

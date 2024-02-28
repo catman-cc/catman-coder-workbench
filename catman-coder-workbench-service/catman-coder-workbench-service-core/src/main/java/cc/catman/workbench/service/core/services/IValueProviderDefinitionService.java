@@ -14,12 +14,6 @@ public interface IValueProviderDefinitionService {
     Optional<ValueProviderDefinition> findById(String id);
     Optional<ValueProviderDefinition> findById(String id, ILoopReferenceContext context);
 
-    Optional<ValueProviderDefinition> findById(String id
-            , Map<String, ValueProviderDefinition> existPublicValueProviderDefinitions
-            , Map<String, Parameter> existPublicParameterDefinitions
-            , Map<String, TypeDefinition> existPublicTypeDefinitions
-    );
-
     ValueProviderDefinition save(ValueProviderDefinition valueProviderDefinition);
 
     default boolean deleteById(String id) {

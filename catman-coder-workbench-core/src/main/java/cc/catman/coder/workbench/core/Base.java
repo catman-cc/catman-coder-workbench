@@ -23,6 +23,11 @@ public class Base {
     protected Group group;
 
     /**
+     * 被标注资源的版本信息,根据资源的版本信息,访问者可以考虑如何处理资源的版本信息
+     */
+    protected String version;
+
+    /**
      * 是否公开该类型定义,当该类型定义被公开时,外部可以对该类型进行引用
      */
     @Builder.Default

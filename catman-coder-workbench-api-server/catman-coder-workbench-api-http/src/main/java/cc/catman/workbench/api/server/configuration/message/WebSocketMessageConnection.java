@@ -4,12 +4,12 @@ import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageACK;
 import cc.catman.coder.workbench.core.message.connection.AbstractMessageConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.Session;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.experimental.SuperBuilder;
 
-import javax.websocket.Session;
 
 @Data
 @SuperBuilder

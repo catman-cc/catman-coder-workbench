@@ -11,9 +11,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
-@Configuration
+//@Configuration
 public class MessageSubscriberConfiguration implements InitializingBean {
 
     @Resource

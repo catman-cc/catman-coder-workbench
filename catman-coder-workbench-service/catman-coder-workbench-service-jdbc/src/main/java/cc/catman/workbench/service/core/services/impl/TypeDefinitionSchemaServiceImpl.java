@@ -1,5 +1,6 @@
 package cc.catman.workbench.service.core.services.impl;
 
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.type.DefaultType;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.type.TypeDefinitionSchema;
@@ -7,12 +8,10 @@ import cc.catman.coder.workbench.core.type.TypeItem;
 import cc.catman.workbench.service.core.services.ITypeDefinitionSchemaService;
 import cc.catman.workbench.service.core.services.ITypeDefinitionService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import jakarta.annotation.Resource;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,7 +21,14 @@ public class TypeDefinitionSchemaServiceImpl implements ITypeDefinitionSchemaSer
     private ITypeDefinitionService typeDefinitionService;
 
     @Override
+    @Transactional
     public TypeDefinitionSchema save(TypeDefinitionSchema schema) {
+        if (schema == null) {
+            throw new RuntimeException("schema can not be null");
+        }
+
+        ILoopReferenceContext context= Optional.of(schema).map(TypeDefinitionSchema::getContext).orElse(ILoopReferenceContext.create());
+        context.addTypeDefinitions(new ArrayList<>(Optional.ofNullable(schema.getDefinitions()).orElse(Collections.emptyMap()).values()));
         // 接下来开始执行保存操作
         Map<String, TypeDefinition> map = schema.getDefinitions().values().stream().map(typeDefinition -> {
             // 这里限制了,禁止修改其他public的类型定义,如果解除此处的限制,则可以修改了
@@ -49,16 +55,13 @@ public class TypeDefinitionSchemaServiceImpl implements ITypeDefinitionSchemaSer
 
     @Override
     public Optional<TypeDefinitionSchema> findById(String id) {
-        return Optional.ofNullable(this.findById(id, TypeDefinitionSchema.builder()
-                .root(id)
-                .build()
-        ));
+        return Optional.ofNullable(typeDefinitionService.findById(id).orElseThrow(() -> new RuntimeException("can not find type definition:" + id)))
+                .map(TypeDefinitionSchema::of);
     }
 
     public TypeDefinitionSchema findById(String id, TypeDefinitionSchema schema) {
         TypeDefinition typeDefinition = typeDefinitionService.findById(id).orElseThrow(() -> new RuntimeException("can not find type definition:" + id));
         schema.getDefinitions().put(id, typeDefinition);
-
         Map<String, List<String>> referenceRelationship = schema.getRefs();
         DefaultType type = typeDefinition.getType();
         for (TypeItem item : type.getSortedAllItems()) {

@@ -3,12 +3,12 @@ package cc.catman.workbench.service.core.services.impl;
 import cc.catman.coder.workbench.core.JSONMapper;
 import cc.catman.plugin.core.label.Label;
 import cc.catman.plugin.core.label.Labels;
-import cc.catman.workbench.service.core.po.BaseRef;
-import cc.catman.workbench.service.core.po.LabelItemRef;
-import cc.catman.workbench.service.core.repossitory.IBaseRefRepository;
-import cc.catman.workbench.service.core.repossitory.ILabelItemRefRepository;
-import cc.catman.workbench.service.core.repossitory.ITagRefRepository;
-import cc.catman.workbench.service.core.po.TagRef;
+import cc.catman.workbench.service.core.po.base.BaseRef;
+import cc.catman.workbench.service.core.po.base.LabelItemRef;
+import cc.catman.workbench.service.core.repossitory.base.IBaseRefRepository;
+import cc.catman.workbench.service.core.repossitory.base.ILabelItemRefRepository;
+import cc.catman.workbench.service.core.repossitory.base.ITagRefRepository;
+import cc.catman.workbench.service.core.po.base.TagRef;
 import cc.catman.workbench.service.core.services.IBaseService;
 import cc.catman.workbench.service.core.services.ILabelService;
 import cc.catman.workbench.service.core.services.ITagService;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.IdGenerator;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,12 +93,16 @@ public class BaseServiceImpl implements IBaseService {
 
 
         Optional.ofNullable(base.getTags()).ifPresent(tags -> {
-            tagService.save(kind, belongId, tags.stream().map(tag -> TagRef.builder()
-                    .id(idGenerator.generateId().toString())
-                    .kind(kind)
-                    .belongId(id)
-                    .tag(tag.getName())
-                    .build()).toList());
+            tagService.save(kind, belongId, tags.stream().map(tag -> {
+                TagRef tr = TagRef.builder()
+                                .id(idGenerator.generateId().toString())
+                                .kind(kind)
+                                .belongId(id)
+                                .tag(tag.getName())
+                                .build();
+                        return tr;
+                    }
+            ).toList());
         });
 
         Optional.ofNullable(base.getLabels()).ifPresent(labels -> {

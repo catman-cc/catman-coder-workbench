@@ -28,9 +28,6 @@ public interface IParameterService {
 
     Optional<Parameter> findById(String id, ILoopReferenceContext context);
 
-
-    Optional<Parameter> findById(String id, Map<String, ValueProviderDefinition> existPublicValueProviderDefinitions, Map<String,Parameter> existPublicParameters, Map<String,TypeDefinition> existPublicTypeDefinitions);
-
     Parameter save(Parameter parameter);
 
     default Optional<Parameter> deleteById(String id){
@@ -53,4 +50,7 @@ public interface IParameterService {
 
     boolean delete(Parameter parameter,int stackCount,boolean includePublic);
 
+    Parameter create(TypeDefinition td);
+
+    Parameter create(TypeDefinition td, ILoopReferenceContext context);
 }

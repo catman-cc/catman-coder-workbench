@@ -17,7 +17,7 @@ import java.util.Optional;
 public class MapParameterParseStrategy implements IParameterParseStrategy {
     @Override
     public boolean support(Parameter parameter) {
-        return parameter.getType().getType().isMap()||checkTypeName(parameter);
+        return parameter.getType().getType().isMap() || checkTypeName(parameter);
     }
 
     protected boolean checkTypeName(Parameter parameter){

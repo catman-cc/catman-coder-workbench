@@ -1,6 +1,5 @@
 package cc.catman.coder.workbench.core.parameter.strategy;
 
-import cc.catman.coder.workbench.core.Constants;
 import cc.catman.coder.workbench.core.parameter.IParameterParseHandlerContext;
 import cc.catman.coder.workbench.core.parameter.IParameterParseStrategy;
 import cc.catman.coder.workbench.core.parameter.Parameter;

@@ -1,17 +1,13 @@
 package cc.catman.coder.workbench.core.parameter;
 
-import cc.catman.coder.workbench.core.JSONMapper;
 import cc.catman.coder.workbench.core.type.DefaultType;
 import cc.catman.coder.workbench.core.type.TypeAnalyzer;
-import cc.catman.coder.workbench.core.type.complex.StructType;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class TypeToParameterAnalyzerTest {
 

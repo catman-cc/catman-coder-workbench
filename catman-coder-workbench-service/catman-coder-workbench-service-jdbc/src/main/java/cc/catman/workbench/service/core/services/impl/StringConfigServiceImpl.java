@@ -1,14 +1,14 @@
 package cc.catman.workbench.service.core.services.impl;
 
 import cc.catman.workbench.service.core.entity.StringConfig;
-import cc.catman.workbench.service.core.po.StringConfigPO;
-import cc.catman.workbench.service.core.repossitory.IStringConfigRefRepository;
+import cc.catman.workbench.service.core.po.resource.StringConfigPO;
+import cc.catman.workbench.service.core.repossitory.resource.IStringConfigRefRepository;
 import cc.catman.workbench.service.core.services.IStringConfigService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Optional;
 
 @Service

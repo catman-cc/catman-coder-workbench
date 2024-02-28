@@ -1,6 +1,6 @@
 package cc.catman.workbench.api.server.websocket.run.debug;
 
-import javax.websocket.Session;
+import jakarta.websocket.Session;
 
 public interface IDebugSessionManager {
 

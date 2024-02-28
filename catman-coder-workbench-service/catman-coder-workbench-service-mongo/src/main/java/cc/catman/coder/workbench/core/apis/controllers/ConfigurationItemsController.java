@@ -5,7 +5,7 @@ import cc.catman.coder.workbench.core.apis.repositories.ConfigurationItem;
 import cc.catman.coder.workbench.core.apis.service.ConfigurationItemsService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @RequestMapping("configuration-items")
 @RestController

@@ -20,6 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Node extends Base {
+
     private String id;
 
     private String name;
@@ -53,8 +54,6 @@ public class Node extends Base {
      * 磁盘大小
      */
     private int disk;
-
-
 
     /**
      * 节点的类型

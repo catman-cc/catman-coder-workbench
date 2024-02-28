@@ -1,14 +1,12 @@
 package cc.catman.coder.workbench.core.type;
 
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 @Builder
@@ -22,10 +20,15 @@ public class TypeDefinitionSchema {
     private Map<String, TypeDefinition> definitions = new HashMap<>();
     @Builder.Default
     private Map<String, List<String>> refs = new HashMap<>();
+    @Builder.Default
+    private ILoopReferenceContext context=ILoopReferenceContext.create();
 
     public static TypeDefinitionSchema of(TypeDefinition typeDefinition) {
         TypeDefinitionSchema schema = new TypeDefinitionSchema();
         schema.setRoot(typeDefinition.getId());
+        if (Optional.ofNullable(typeDefinition.getType().getContext()).isPresent()){
+            schema.setContext(typeDefinition.getType().getContext());
+        }
         return schema.parse(typeDefinition);
     }
 
@@ -37,7 +40,7 @@ public class TypeDefinitionSchema {
 
     public TypeDefinition toTypeDefinition() {
         TypeDefinition root = definitions.get(this.root);
-        root.synchronize(definitions);
+        root.getContext().addTypeDefinitions(definitions.values());
         return root;
     }
 

@@ -1,5 +1,6 @@
 package cc.catman.workbench.api.server.configuration;
 
+import cc.catman.workbench.api.server.configuration.join.ExecutorJoinWebSocketHandler;
 import cc.catman.workbench.api.server.websocket.run.DebuggableWebSocketHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 import org.springframework.web.socket.server.support.OriginHandshakeInterceptor;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +37,9 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
     @Resource
     private DebuggableWebSocketHandler debuggableWebSocketHandler;
 
+    @Resource
+    private ExecutorJoinWebSocketHandler executorJoinWebSocketHandler;
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(debuggableWebSocketHandler, "/ws")
@@ -43,5 +47,9 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
                 .setAllowedOriginPatterns("*")
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
         ;
+        registry.addHandler(executorJoinWebSocketHandler, "/ws/join/**")
+                .setAllowedOrigins("*")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(new HttpSessionHandshakeInterceptor());
     }
 }

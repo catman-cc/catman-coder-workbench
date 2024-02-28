@@ -1,6 +1,7 @@
 package cc.catman.workbench.configuration.id;
 
 import cc.catman.coder.workbench.core.Constants;
+import jakarta.persistence.Id;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -9,7 +10,6 @@ import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
 import org.springframework.util.ReflectionUtils;
 
-import javax.persistence.Id;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Optional;

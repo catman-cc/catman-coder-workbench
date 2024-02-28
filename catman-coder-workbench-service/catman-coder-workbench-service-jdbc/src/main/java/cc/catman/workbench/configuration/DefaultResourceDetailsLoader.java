@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultResourceDetailsLoader implements ResourceDetailsLoader {
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ModelMapper modelMapper;
     @Override
     public boolean support(Resource resource) {

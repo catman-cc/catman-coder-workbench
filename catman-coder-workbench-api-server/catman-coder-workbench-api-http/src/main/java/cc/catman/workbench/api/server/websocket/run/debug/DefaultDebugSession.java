@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.annotation.Resource;
-import javax.websocket.Session;
+import jakarta.annotation.Resource;
+import jakarta.websocket.Session;
 import java.util.Arrays;
 
 @Data

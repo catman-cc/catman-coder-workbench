@@ -2,7 +2,7 @@ package cc.catman.workbench.api.server.configuration.jackson;
 
 import cc.catman.coder.workbench.core.Constants;
 import cc.catman.coder.workbench.core.message.Message;
-import cc.catman.coder.workbench.core.message.message.CommandMessage;
+import cc.catman.workbench.api.server.configuration.message.CommandMessage;
 import cc.catman.coder.workbench.core.message.message.MessagePayloadDeserializer;
 import cc.catman.coder.workbench.core.message.message.TextMessage;
 import cc.catman.coder.workbench.core.type.AnonymousType;

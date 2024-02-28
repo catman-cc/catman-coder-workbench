@@ -1,16 +1,14 @@
 package cc.catman.coder.workbench.core.value;
 
 import cc.catman.coder.workbench.core.Base;
-import cc.catman.coder.workbench.core.common.Scope;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.parameter.Parameter;
-import cc.catman.coder.workbench.core.type.TypeDefinition;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 值提取器定义
@@ -21,6 +19,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ValueProviderDefinition extends Base {
+
     private String id;
     /**
      * 值提取器名称
@@ -35,8 +34,6 @@ public class ValueProviderDefinition extends Base {
      * 值提取器描述
      */
     private String describe;
-
-    private Scope scope;
 
     /**
      * 值提取器配置
@@ -64,11 +61,6 @@ public class ValueProviderDefinition extends Base {
     private List<ValueProviderDefinition> postValueProviders=new ArrayList<>();
 
     @Builder.Default
-    private Map<String,ValueProviderDefinition> publicValueProviderDefinitions=new HashMap<>();
-
-    @Builder.Default
-    private Map<String,Parameter> publicParameters=new HashMap<>();
-
-    @Builder.Default
-    private Map<String, TypeDefinition> publicTypeDefinitions=new HashMap<>();
+    @JsonIgnore
+    private transient ILoopReferenceContext context=ILoopReferenceContext.create();
 }

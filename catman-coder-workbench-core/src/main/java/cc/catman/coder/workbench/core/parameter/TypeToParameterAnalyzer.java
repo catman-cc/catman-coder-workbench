@@ -79,7 +79,7 @@ public class TypeToParameterAnalyzer {
                         .build():null)
                 .items(
                         type.getType().isComplex()
-                                ?type.getType().getPrivateItems().values()
+                                ?type.getAllItems()
                                 .stream().map(item-> analyzer(item,false))
                                 .collect(Collectors.toList())
                                 : new ArrayList<>()

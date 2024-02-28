@@ -17,7 +17,7 @@ import java.util.Optional;
 public class StructParameterParseStrategy implements IParameterParseStrategy {
     @Override
     public boolean support(Parameter parameter) {
-        return parameter.getType().getType().isStruct()||checkTypeName(parameter);
+        return parameter.getType().getType().isStruct() || checkTypeName(parameter);
     }
     protected boolean checkTypeName(Parameter parameter){
         DefaultType type = parameter.getType().getType();

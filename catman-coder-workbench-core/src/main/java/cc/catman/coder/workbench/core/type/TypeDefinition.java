@@ -1,18 +1,19 @@
 package cc.catman.coder.workbench.core.type;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import cc.catman.coder.workbench.core.Base;
 import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.common.Mock;
 import cc.catman.coder.workbench.core.common.Scope;
+import cc.catman.coder.workbench.core.runtime.IFunctionCallInfo;
 import cc.catman.coder.workbench.core.type.complex.ArrayType;
 import cc.catman.coder.workbench.core.type.complex.ComplexType;
 import cc.catman.coder.workbench.core.type.complex.ReferType;
 
 import cc.catman.coder.workbench.core.type.raw.RawType;
+import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +43,18 @@ public class TypeDefinition extends Base {
     private DefaultType type;
 
     /**
+     * 该参数是否必须
+     */
+    @Builder.Default
+    private Boolean required=false;
+
+    /**
+     * 该参数的验证规则,如果为空,则不验证
+     * 值提供者,必须返回boolean类型
+     */
+    private IFunctionCallInfo check;
+
+    /**
      * 参数的默认值
      */
     protected String defaultValue;
@@ -56,21 +69,15 @@ public class TypeDefinition extends Base {
      */
     protected Mock mock;
 
-    public TypeDefinition synchronize() {
-        this.type.synchronize();
-        return this;
+    @JsonIgnore
+    public ILoopReferenceContext getContext() {
+        return Optional.ofNullable(this.getType()).map(DefaultType::getContext).orElse(null);
     }
 
-    public TypeDefinition synchronize(Map<String, TypeDefinition> typeDefinitions) {
-        this.type.synchronize(typeDefinitions);
-        return this;
+    @JsonIgnore
+    public void setContext(ILoopReferenceContext context) {
+       Optional.ofNullable(this.getType()).ifPresent(t -> t.setContext(context));
     }
-
-    public TypeDefinition populatePublicTypeDefinition(Map<String, TypeDefinition> publicTypeDefinitions) {
-        this.getType().populatePublicTypeDefinition(publicTypeDefinitions);
-        return this;
-    }
-
     /**
      * 该方法的目的是查找出,当前类型定义引用了哪些公开类型定义
      */
@@ -107,7 +114,7 @@ public class TypeDefinition extends Base {
         list.addAll(refers);
         return list;
     }
-
+    @JsonIgnore
     public List<TypeDefinition> getAllItems() {
         return this.getType().getAllItems();
     }
@@ -124,6 +131,8 @@ public class TypeDefinition extends Base {
         return this.getType().existsInPublic(id);
     }
     public TypeDefinition getPublic(String id) {
-        return this.getType().getPublicItems().get(id);
+        return Optional.ofNullable(this.getType().getItem(id))
+                .filter(item ->item.getScope().isPublic())
+                .orElse(null);
     }
 }

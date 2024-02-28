@@ -2,8 +2,8 @@ package cc.catman.workbench.api.server.websocket.run.debug;
 
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.websocket.Session;
+import jakarta.annotation.Resource;
+import jakarta.websocket.Session;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 

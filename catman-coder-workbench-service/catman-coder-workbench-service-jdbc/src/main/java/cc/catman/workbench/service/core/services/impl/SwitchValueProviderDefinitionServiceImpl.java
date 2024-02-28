@@ -5,7 +5,7 @@
 //import cc.catman.coder.workbench.core.value.ValueProvider;
 //import cc.catman.coder.workbench.core.value.ValueProviderConfig;
 //import cc.catman.coder.workbench.core.value.providers.ifs.IFValueProvider;
-//import cc.catman.workbench.service.core.po.ValueProviderConfigItemRef;
+//import cc.catman.workbench.service.core.po.valueProvider.ValueProviderConfigItemRef;
 //import org.springframework.stereotype.Service;
 //import org.springframework.util.CollectionUtils;
 //

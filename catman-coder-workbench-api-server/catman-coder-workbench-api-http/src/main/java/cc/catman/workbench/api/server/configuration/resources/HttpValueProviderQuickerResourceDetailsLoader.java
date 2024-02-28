@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component;
 
 
 public class HttpValueProviderQuickerResourceDetailsLoader implements ResourceDetailsLoader {
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ModelMapper modelMapper;
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ObjectMapper objectMapper;
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private IStringConfigService stringConfigService;
 
     @Override

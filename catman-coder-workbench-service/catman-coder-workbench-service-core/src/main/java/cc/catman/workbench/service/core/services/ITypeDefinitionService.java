@@ -18,7 +18,11 @@ public interface ITypeDefinitionService {
      * @param typeDefinition 类型定义
      * @return 保存后的类型定义
      */
-    TypeDefinition save(TypeDefinition typeDefinition);
+    default TypeDefinition save(TypeDefinition typeDefinition){
+        return save(typeDefinition, Optional.ofNullable(typeDefinition).map(TypeDefinition::getContext).orElse(ILoopReferenceContext.create()));
+    }
+
+    TypeDefinition save(TypeDefinition typeDefinition, ILoopReferenceContext context);
 
     /**
      * 根据id查询类型定义
@@ -27,10 +31,8 @@ public interface ITypeDefinitionService {
      */
     Optional<TypeDefinition> findById(String id);
 
-    Optional<TypeDefinition> findById(String id,TypeDefinition parent);
 
     Optional<TypeDefinition> findById(String id, ILoopReferenceContext context);
-    Optional<TypeDefinition> findById(String id, Map<String,TypeDefinition> existPublicTypeDefinitions);
 
     /**
      * 根据id删除类型定义, 删除类型定义时,需要考虑类型定义的范围,如果类型定义是PRIVATE,那么可以删除,如果类型是PUBLIC,在级联状态下,删除级联关系即可,

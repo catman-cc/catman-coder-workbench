@@ -17,7 +17,7 @@ public class RawParameterParseStrategy implements IParameterParseStrategy {
             ,Constants.Type.TYPE_NAME_BOOLEAN));
     @Override
     public boolean support(Parameter parameter) {
-        return parameter.getType().getType().isRaw()||checkTypeName(parameter);
+        return parameter.getType().getType().isRaw() || checkTypeName(parameter);
     }
 
     protected boolean checkTypeName(Parameter parameter){

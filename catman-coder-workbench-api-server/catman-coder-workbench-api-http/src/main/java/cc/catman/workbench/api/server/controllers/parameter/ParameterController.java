@@ -1,13 +1,14 @@
 package cc.catman.workbench.api.server.controllers.parameter;
 
 import cc.catman.coder.workbench.core.parameter.Parameter;
+import cc.catman.coder.workbench.core.parameter.ParameterSchema;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.workbench.service.core.services.IParameterService;
 import cc.catman.workbench.service.core.services.ITypeDefinitionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 @Slf4j
 @RestController
@@ -24,7 +25,10 @@ public class ParameterController {
         return parameterService.createFromTypeDefinition(typeDefinition).orElse(null);
     }
     @PostMapping("create-from-type-definition/{id}")
-    public Parameter createFromTypeDefinition(@PathVariable String id){
-        return typeDefinitionService.findById(id).flatMap(typeDefinition -> parameterService.createFromTypeDefinition(typeDefinition)).orElse(null);
+    public ParameterSchema createFromTypeDefinition(@PathVariable String id){
+        return typeDefinitionService.findById(id).map(typeDefinition -> parameterService.create(typeDefinition))
+                .map(ParameterSchema::of)
+                .orElse(null);
     }
+
 }

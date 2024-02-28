@@ -2,7 +2,7 @@ package cc.catman.coder.workbench.core.apis.configurations.mongo;
 
 import java.util.Objects;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoOperations;

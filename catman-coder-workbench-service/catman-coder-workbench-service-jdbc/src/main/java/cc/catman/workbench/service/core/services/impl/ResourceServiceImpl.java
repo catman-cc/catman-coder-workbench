@@ -2,20 +2,20 @@ package cc.catman.workbench.service.core.services.impl;
 
 import cc.catman.workbench.configuration.id.CatManIdentifierGenerator;
 import cc.catman.workbench.service.core.entity.Resource;
-import cc.catman.workbench.service.core.po.ResourceRef;
-import cc.catman.workbench.service.core.repossitory.ResourceRefRepository;
+import cc.catman.workbench.service.core.po.resource.ResourceRef;
+import cc.catman.workbench.service.core.repossitory.resource.ResourceRefRepository;
 import cc.catman.workbench.service.core.services.IBaseService;
 import cc.catman.workbench.service.core.services.IResourceService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -26,13 +26,13 @@ import java.util.stream.Collectors;
 @Service
 public class ResourceServiceImpl implements IResourceService {
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ModelMapper modelMapper;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private EntityManager entityManager;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ResourceRefRepository resourceRefRepository;
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private IBaseService baseService;
 
     @Override
@@ -166,10 +166,7 @@ public class ResourceServiceImpl implements IResourceService {
                             .map(base -> base.mergeInto(resource))
                             .orElse(resource);
                 })
-                .map(resource -> {
-                    resource.setChildren(listByParentId(resource.getId(), depthCounter.decrementAndGet()));
-                    return resource;
-                })
+                .peek(resource -> resource.setChildren(listByParentId(resource.getId(), depthCounter.decrementAndGet())))
                 .toList();
     }
 
@@ -246,6 +243,7 @@ public class ResourceServiceImpl implements IResourceService {
     }
 
     @Override
+    @Transactional
     public Resource update(Resource resource) {
         return save(resource);
     }
@@ -455,7 +453,7 @@ public class ResourceServiceImpl implements IResourceService {
         if (resourceRefs==null){
             throw new RuntimeException("can not re-sort resource");
         }
-        if (resourceRefs.size() == 0) {
+        if (resourceRefs.isEmpty()) {
             // 此处需要注意,可能不存在兄弟节点,此时需要将当前记录的前后顺序修改为null
             ResourceRef mainResourceRef = resourceRefRepository.findById(id).orElseThrow(() -> new RuntimeException("resource not found"));
             mainResourceRef.setPreviousId(null);
@@ -476,7 +474,7 @@ public class ResourceServiceImpl implements IResourceService {
         }
         // 获取父级下的所有记录
         List<ResourceRef> resourceRefs = resourceRefRepository.findAll(Example.of(ResourceRef.builder().parentId(parentId).build()));
-        if (resourceRefs.size() == 0) {
+        if (resourceRefs.isEmpty()) {
             // 此处需要注意,可能不存在兄弟节点,此时需要将当前记录的前后顺序修改为null
             ResourceRef mainResourceRef = resourceRefRepository.findById(id).orElseThrow(() -> new RuntimeException("resource not found"));
             mainResourceRef.setPreviousId(null);
@@ -501,7 +499,7 @@ public class ResourceServiceImpl implements IResourceService {
      * @param children 子记录
      */
     protected List<ResourceRef> flushSortIfNeed(List<ResourceRef> children) {
-        if (children.size()==0){
+        if (children.isEmpty()){
             return children;
         }
         if (children.size() == 1) {
@@ -560,7 +558,7 @@ public class ResourceServiceImpl implements IResourceService {
         }
         // 获取父级下的所有记录
         List<Resource> children = listByParentId(parentId);
-        if (children.size() == 0) {
+        if (children.isEmpty()) {
             return false;
         }
         if (deep) {
@@ -573,7 +571,7 @@ public class ResourceServiceImpl implements IResourceService {
     }
 
     protected List<ResourceRef> flushAllChildren(List<ResourceRef> children) {
-        if (children.size() == 0) {
+        if (children.isEmpty()) {
             return children;
         }
         // 此时需要尝试修改所有记录的前后顺序,此时的顺序是按照index的顺序

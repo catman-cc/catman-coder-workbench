@@ -1,6 +1,7 @@
 package cc.catman.workbench.configuration;
 
 import cc.catman.coder.workbench.core.parameter.Parameter;
+import cc.catman.coder.workbench.core.parameter.ParameterSchema;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.type.raw.StringRawType;
 import cc.catman.workbench.service.core.Constants;
@@ -8,6 +9,7 @@ import cc.catman.workbench.service.core.entity.Resource;
 import cc.catman.workbench.service.core.entity.ResourceCreate;
 import cc.catman.workbench.service.core.entity.ResourceDetails;
 import cc.catman.workbench.service.core.services.IParameterService;
+import cc.catman.workbench.service.core.services.ITypeDefinitionService;
 import cc.catman.workbench.service.core.services.ResourceDetailsLoader;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -17,11 +19,14 @@ import java.util.Optional;
 @Component
 public class ParameterResourceDetailsLoader implements ResourceDetailsLoader {
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private ModelMapper modelMapper;
 
-    @javax.annotation.Resource
+   @jakarta.annotation.Resource
     private IParameterService parameterService;
+
+   @jakarta.annotation.Resource
+    private ITypeDefinitionService typeDefinitionService;
 
     @Override
     public boolean support(Resource resource) {
@@ -30,7 +35,9 @@ public class ParameterResourceDetailsLoader implements ResourceDetailsLoader {
 
     @Override
     public Object load(Resource resource) {
-        return parameterService.findById(resource.getResourceId()).orElse(null);
+        return parameterService.findById(resource.getResourceId())
+                .map(ParameterSchema::of)
+                .orElse(null);
     }
 
     @Override
@@ -38,9 +45,9 @@ public class ParameterResourceDetailsLoader implements ResourceDetailsLoader {
         String name = Optional.ofNullable(resource.getName()).orElseGet(() -> "newParameter");
         // 创建资源有两种形态,其中一种是从现有的类型定义中创建
         Parameter parameter = readTypeDefinition(resource)
-                .flatMap(typeDefinition -> {
+                .map(typeDefinition -> {
                     // 从类型定义中创建参数定义
-                    return parameterService.createFromTypeDefinition(typeDefinition);
+                    return parameterService.create(typeDefinition);
                 })
                 .orElseGet(() -> Parameter.builder()
                         .type(TypeDefinition.builder()
@@ -65,8 +72,9 @@ public class ParameterResourceDetailsLoader implements ResourceDetailsLoader {
     }
 
     public Optional<TypeDefinition> readTypeDefinition(ResourceCreate resource) {
-
-        return Optional.ofNullable(resource.getConfig().get("typeDefinition"))
-                .map(td -> modelMapper.map(td, TypeDefinition.class));
+        return Optional.ofNullable(resource.getConfig().get("tid"))
+                .filter(tid -> tid instanceof String)
+                .filter(tid -> !((String) tid).isBlank())
+                .flatMap(tid -> typeDefinitionService.findById(tid.toString()));
     }
 }

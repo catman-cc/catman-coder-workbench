@@ -1,13 +1,18 @@
 package cc.catman.workbench.api.server.controllers.typeDefinition;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import cc.catman.coder.workbench.core.SimpleInfo;
+import cc.catman.coder.workbench.core.serialization.ICatManSerialization;
 import cc.catman.coder.workbench.core.type.TypeDefinitionSchema;
 import cc.catman.workbench.service.core.services.ITypeDefinitionSchemaService;
 import cc.catman.workbench.service.core.services.ITypeDefinitionService;
+import com.caucho.hessian.io.Hessian2Output;
+import org.apache.fury.Fury;
 import org.springframework.web.bind.annotation.*;
 
 import cc.catman.coder.workbench.core.type.TypeDefinition;
@@ -15,6 +20,9 @@ import cc.catman.coder.workbench.core.type.TypeDefinition;
 @RestController
 @RequestMapping("type-definition")
 public class TypeDefinitionController {
+    @Resource
+    private ICatManSerialization serialization;
+
     @Resource
     private ITypeDefinitionService typeDefinitionService;
     @Resource
@@ -24,6 +32,13 @@ public class TypeDefinitionController {
         return typeDefinitionService.findById(id).orElse(null);
     }
 
+    @GetMapping("/serialize")
+    public String  serialize() {
+        List<TypeDefinition> list = typeDefinitionService.list(null);
+        byte[] bytes = serialization.serialize(list);
+        // 将bytes转字符串
+        return new String(bytes);
+    }
     @GetMapping("/fuzzy")
     public List<TypeDefinition> fuzzyQuery(@RequestParam(required = false) String key,
             @RequestParam(required = false) String[] fields) {

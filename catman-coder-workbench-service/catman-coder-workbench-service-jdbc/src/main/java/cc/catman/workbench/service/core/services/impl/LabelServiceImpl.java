@@ -2,14 +2,14 @@ package cc.catman.workbench.service.core.services.impl;
 
 import cc.catman.plugin.core.label.Label;
 import cc.catman.plugin.core.label.Labels;
-import cc.catman.workbench.service.core.po.LabelItemRef;
-import cc.catman.workbench.service.core.repossitory.ILabelItemRefRepository;
+import cc.catman.workbench.service.core.po.base.LabelItemRef;
+import cc.catman.workbench.service.core.repossitory.base.ILabelItemRefRepository;
 import cc.catman.workbench.service.core.services.ILabelService;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

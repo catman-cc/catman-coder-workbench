@@ -1,6 +1,7 @@
 package cc.catman.workbench.api.server.websocket.message;
 
-import javax.websocket.MessageHandler;
+
+import jakarta.websocket.MessageHandler;
 
 /**
  * 当收到任务执行消息时,将调用该处理器

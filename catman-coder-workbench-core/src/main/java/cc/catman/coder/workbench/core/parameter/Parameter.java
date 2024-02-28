@@ -2,7 +2,10 @@ package cc.catman.coder.workbench.core.parameter;
 
 import cc.catman.coder.workbench.core.Base;
 import cc.catman.coder.workbench.core.Constants;
+import cc.catman.coder.workbench.core.DefaultLoopReferenceContext;
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.common.Scope;
+import cc.catman.coder.workbench.core.runtime.IFunctionCallInfo;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -51,6 +54,8 @@ public class Parameter extends Base {
     /**
      * 参数的类型定义标志
      */
+    @Getter
+    @Setter
     private String typeId;
 
     /**
@@ -59,6 +64,10 @@ public class Parameter extends Base {
     @Getter
     @Setter
     private ValueProviderDefinition value;
+
+    @Getter
+    @Setter
+    private IFunctionCallInfo valueFunction;
 
     /**
      * 参数的默认值
@@ -103,6 +112,7 @@ public class Parameter extends Base {
     @Getter
     private boolean skipChildWhenEmpty;
 
+
     /**
      * 当前参数私有的参数定义,这些参数定义,只能在当前参数的值提取器中使用
      */
@@ -119,21 +129,7 @@ public class Parameter extends Base {
     @Setter
     @JsonIgnore
     @Builder.Default
-    private transient Map<String,Parameter> publicItems=new HashMap<>();
-    /**
-     * 在整个参数处理上下文中所用到的所有公开类型定义,此处不会直接序列化传递到其他端,而是会采用schema的方式进行传递
-     */
-    @Getter
-    @Setter
-    @JsonIgnore
-    @Builder.Default
-    private transient Map<String,TypeDefinition> publicTypeDefinitions=new HashMap<>();
-
-    @Getter
-    @Setter
-    @JsonIgnore
-    @Builder.Default
-    private transient Map<String,ValueProviderDefinition> publicValueProviderDefinitions=new HashMap<>();
+    private transient ILoopReferenceContext context= DefaultLoopReferenceContext.create();
 
     /**
      * 当前参数的所有子节点,包括私有的和公开的
@@ -144,6 +140,7 @@ public class Parameter extends Base {
 
     @Setter
     @Builder.Default
+    @JsonIgnore
     private List<Parameter> items = new ArrayList<>();
 
     /**
@@ -163,27 +160,29 @@ public class Parameter extends Base {
         return root;
     }
 
+    @JsonIgnore
     public TypeDefinition getType(){
         return Optional.ofNullable(this.type).orElseGet(()->{
             if (this.typeId!=null){
-                this.type=this.publicTypeDefinitions.get(this.typeId);
+                this.type=this.getContext().getTypeDefinitions().get(this.typeId);
                 return this.type;
             }
             return  null;
         });
     }
 
+    @JsonIgnore
     public void setType(TypeDefinition type){
         this.type=type;
         if (type!=null){
             this.typeId=type.getId();
             if (Scope.isPublic(type)){
-                this.publicTypeDefinitions.put(type.getId(),type);
+               this.context.add(type);
             }
         }
     }
     public List<Parameter> getItems(){
-        return this.sortedAllItems.stream().map(item-> getItemParameter(item).orElseThrow()).toList();
+        return new ArrayList<>( this.sortedAllItems.stream().map(item-> getItemParameter(item).orElseThrow()).toList());
     }
 
     public Optional<Parameter> get(final String id){
@@ -198,11 +197,7 @@ public class Parameter extends Base {
         if (parameter==null){
             return this;
         }
-        if (Scope.isPublic(parameter.scope)){
-            publicItems.put(parameter.getId(),parameter);
-        }else {
-            privateItems.put(parameter.getId(),parameter);
-        }
+        this.context.add(parameter);
         this.sortedAllItems.add(ParameterItem.builder().itemId(parameter.getId()).name(parameter.getName()).build());
         return this;
     }
@@ -214,7 +209,7 @@ public class Parameter extends Base {
         return getItemParameter(id).orElseGet(()->{
             Parameter newParameter = creator.get();
             if (Scope.isPublic(newParameter.scope)){
-                publicItems.put(id,newParameter);
+                this.context.add(newParameter);
             }else {
                 privateItems.put(id, newParameter);
             }
@@ -222,75 +217,18 @@ public class Parameter extends Base {
         });
     }
 
-    public Parameter synchronize(){
-        return this.synchronizePublicDefinition().synchronizePublicTypeDefinition();
-    }
-    public Parameter synchronizePublicDefinition(){
-        return  this.populatePublicDefinition(new HashMap<>());
-    }
-
-    public Parameter synchronizePublicTypeDefinition(){
-        return this.populatePublicTypeDefinition(new HashMap<>());
-    }
-
-    private Parameter populatePublicTypeDefinition(Map<String,TypeDefinition> publicTypeDefinitions){
-       if (this.publicTypeDefinitions.size()>0){
-        this.publicTypeDefinitions.forEach((key,value)->{
-            if (publicTypeDefinitions.containsKey(key)){
-                TypeDefinition publicTypeDefinition = publicTypeDefinitions.get(key);
-                if (!publicTypeDefinition.equals(value)){
-                    log.warn("find a duplicate public type definition, it should never happened. id is {}, name is {}",key,value.getName());
-                }
-            }else{
-                publicTypeDefinitions.put(key,value);
-            }
-           });
-       }
-       this.publicTypeDefinitions=publicTypeDefinitions;
-         this.privateItems.forEach((key,value)->{
-              value.populatePublicTypeDefinition(publicTypeDefinitions);
-         });
-         return this;
-    }
-    private Parameter populatePublicDefinition(Map<String,Parameter> publicItems){
-        if (this.publicItems.size()>0){
-            // 如果当前参数存在公开定义,则尝试将公开定义填充到当前参数中
-            this.publicItems.forEach((key,value)->{
-                if (publicItems.containsKey(key)){
-                    Parameter publicItem = publicItems.get(key);
-                    if (!publicItem.equals(value)){
-                        log.warn("find a duplicate public item, it should never happened. id is {}, name is {}",key,value.getName());
-                    }
-                }else{
-                    publicItems.put(key,value);
-                }
-            });
-        }
-        // 覆盖
-        this.publicItems=publicItems;
-        // 然后填充privateItems
-        this.privateItems.forEach((key,value)->{
-            value.populatePublicDefinition(publicItems);
-        });
-        this.publicItems.forEach((key,value)->{
-            if (value.publicItems.equals(this.publicItems)){
-                return;
-            }
-            value.populatePublicDefinition(publicItems);
-        });
-        return this;
-    }
     /**
      * 尝试读取子参数定义
      * @param id 子参数定义的id
      * @return 子参数定义
      */
     private Optional<Parameter> getItemParameter(String id){
-        if (privateItems.containsKey(id)){
-            return Optional.of(privateItems.get(id));
-        }else if (publicItems.containsKey(id)) {
-            return Optional.of(publicItems.get(id));
-        }
-        return Optional.empty();
+        return this.getContext().getParameter(id);
+//        if (privateItems.containsKey(id)){
+//            return Optional.of(privateItems.get(id));
+//        }else if (this.getContext().includeParameter(id)) {
+//            return this.getContext().getParameter(id);
+//        }
+//        return Optional.empty();
     }
 }

@@ -1,5 +1,6 @@
 package cc.catman.coder.workbench.core;
 
+import cc.catman.coder.workbench.core.function.FunctionCallInfo;
 import cc.catman.coder.workbench.core.function.FunctionInfo;
 import cc.catman.coder.workbench.core.parameter.Parameter;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
@@ -19,6 +20,8 @@ public class DefaultLoopReferenceContext implements ILoopReferenceContext {
     private final Map<String, Parameter> parameters=new HashMap<>();
     @Getter
     private final Map<String, FunctionInfo> functionInfos=new HashMap<>();
+    @Getter
+    private final Map<String, FunctionCallInfo> functionCallInfos=new HashMap<>();
 
     public static DefaultLoopReferenceContext create(){
         return new DefaultLoopReferenceContext();
@@ -26,6 +29,7 @@ public class DefaultLoopReferenceContext implements ILoopReferenceContext {
 
     @Override
     public ILoopReferenceContext merge(ILoopReferenceContext context) {
+        // 合并两个上下文中的数据
         if (context!=null){
             this.typeDefinitions.putAll(context.getTypeDefinitions());
             this.valueProviderDefinitions.putAll(context.getValueProviderDefinitions());

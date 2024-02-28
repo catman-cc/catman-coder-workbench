@@ -1,6 +1,6 @@
 package cc.catman.workbench.service.core.services;
 
-import cc.catman.workbench.service.core.po.TagRef;
+import cc.catman.workbench.service.core.po.base.TagRef;
 
 import java.util.List;
 import java.util.Optional;
