@@ -1,4 +1,4 @@
-package cc.catman.workbench.service.core.po.function.caller;
+package cc.catman.workbench.service.core.po.function;
 
 public enum EFunctionCallType {
     QUEUE,

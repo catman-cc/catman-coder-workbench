@@ -1,4 +1,4 @@
-package cc.catman.workbench.api.server.configuration.message;
+package cc.catman.workbench.api.server.configuration.message.dto;
 
 import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.subscriber.Command;

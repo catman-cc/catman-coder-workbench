@@ -8,12 +8,18 @@ import lombok.Data;
  */
 @Data
 public class Breakpoint {
+
     private String id;
 
     /**
      * 断点对应的函数id
      */
     private String functionId;
+
+    /**
+     * 断点对应的函数调用id
+     */
+    private String functionCallId;
 
     /**
      * 断点对应的行号,此处的行号和代码行号不一样,这里的行号其实是Function提供的断点index

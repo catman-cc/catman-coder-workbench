@@ -24,6 +24,12 @@ public class MessageDecoder extends MessageToMessageDecoder<ByteBuf> {
         if (msg.readableBytes() < 1) {
             return;
         }
+
+        // TODO 或许??? 新增第一个字节表示通讯协议,从而兼容多种协议,这样可以使用一个端口来支持多种协议?
+        // 🤔
+        // 比如: 0x01,表示标准TCP协议,0x02表示HTTP协议,0x03表示自定义协议
+        // 然后再根据不同的协议进行不同的解码?
+
         msg.markReaderIndex();
         // 读取消息的序列化方式
         byte serializeType = msg.readByte();

@@ -43,7 +43,9 @@ public class Message<T> implements Serializable {
     private long timestamp; // 消息的时间戳
     private long consumeTime; // 消息的消费时间
 
-    private final Map<String,Object> sendBack=new HashMap<>(); // 消息的回传数据
+    private final Map<String,Object> sendBack=new HashMap<>(); // 消息的回传数据,消息的接收方在响应时,该数据被包含在back字段中
+
+    private  Map<String,Object> back=new HashMap<>(); // 接收到消息,在应答时,会将sendBack中的数据回传给发送者
 
     @JsonIgnore
     private transient MessageChannel messageChannel;
@@ -102,6 +104,8 @@ public class Message<T> implements Serializable {
                 message.setTopic(this.topic);
             }
         }
+        // 回传数据
+        message.setBack(this.sendBack);
         this.messageChannel.send(message);
     }
 

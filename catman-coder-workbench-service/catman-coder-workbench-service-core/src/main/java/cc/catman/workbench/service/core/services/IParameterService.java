@@ -1,5 +1,6 @@
 package cc.catman.workbench.service.core.services;
 
+import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.parameter.Parameter;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
@@ -30,12 +31,23 @@ public interface IParameterService {
 
     Parameter save(Parameter parameter);
 
+    default boolean deleteIfNotPublic(String id){
+        return this.findById(id).map(this::deleteIfNotPublic).orElse(false);
+    }
+    default boolean deleteIfNotPublic(Parameter parameter){
+        if (Scope.isPublic(parameter)){
+            return false;
+        }
+        return delete(parameter);
+    }
+
     default Optional<Parameter> deleteById(String id){
         return deleteById(id,false);
     }
     default Optional<Parameter> deleteById(String id,boolean includePublic){
-        return deleteById(id,0,false);
+        return deleteById(id,0,includePublic);
     }
+
     default Optional<Parameter> deleteById(String id,int stackCount,boolean includePublic){
         return this.findById(id).map(ifp->this.delete(ifp,stackCount,includePublic)?ifp:null);
     }

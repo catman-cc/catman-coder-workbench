@@ -294,6 +294,11 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
     }
 
     @Override
+    public Optional<TypeDefinition> delete(TypeDefinition typeDefinition) {
+       return this.deleteById(typeDefinition.getId());
+    }
+
+    @Override
     public Optional<TypeDefinition> deleteByBelongId(String belongId) {
         typeDefinitionTypeRefRepository.findOne(Example.of(TypeDefinitionTypeRef.builder()
                 .typeDefinitionId(belongId)

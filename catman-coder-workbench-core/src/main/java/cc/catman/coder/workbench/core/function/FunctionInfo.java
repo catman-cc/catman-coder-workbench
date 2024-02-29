@@ -19,7 +19,6 @@ import java.util.Map;
  * 函数定义
  */
 @EqualsAndHashCode(callSuper = true)
-@Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,42 +26,61 @@ public class FunctionInfo extends Base implements IFunctionInfo {
     /**
      * 唯一标志
      */
+    @Getter
+    @Setter
     private String  id;
 
     /**
      * 函数名称
      */
+    @Getter
+    @Setter
     private String name;
 
     /**
      * 函数类型
      */
+    @Getter
+    @Setter
     private String kind;
 
     /**
      * 函数的简短描述
      */
+    @Getter
+    @Setter
     private String describe;
 
     /**
      * 函数的参数
      */
+    @Getter
+    @Setter
     private Map<String,TypeDefinition> args;
 
     /**
      * 函数的返回值
      */
+    @Getter
+    @Setter
     private TypeDefinition result;
-
+    @Setter
     @Builder.Default
-    List<IFunctionCallInfo> callQueue=new ArrayList<>();
+    List<FunctionCallInfo> callQueue=new ArrayList<>();
 
+    public List<FunctionCallInfo> getCallQueue() {
+        return callQueue;
+    }
+    @Getter
+    @Setter
     @Builder.Default
-    List<IFunctionCallInfo> finallyCalls=new ArrayList<>();
-
+    List<FunctionCallInfo> finallyCalls=new ArrayList<>();
+    @Getter
+    @Setter
     @Builder.Default
     List<Object> exceptionHandlers=new ArrayList<>();
-
+    @Getter
+    @Setter
     @JsonIgnore
     @Builder.Default
     private transient ILoopReferenceContext context=ILoopReferenceContext.create();

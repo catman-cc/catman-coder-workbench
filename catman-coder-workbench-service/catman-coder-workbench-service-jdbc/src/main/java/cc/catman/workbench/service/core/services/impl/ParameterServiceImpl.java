@@ -11,10 +11,7 @@ import cc.catman.workbench.service.core.po.parameter.ParameterItemRef;
 import cc.catman.workbench.service.core.po.parameter.ParameterRef;
 import cc.catman.workbench.service.core.repossitory.parameter.IParameterItemRefRepository;
 import cc.catman.workbench.service.core.repossitory.parameter.IParameterRefRepository;
-import cc.catman.workbench.service.core.services.IBaseService;
-import cc.catman.workbench.service.core.services.IParameterService;
-import cc.catman.workbench.service.core.services.ITypeDefinitionService;
-import cc.catman.workbench.service.core.services.IValueProviderDefinitionService;
+import cc.catman.workbench.service.core.services.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Example;
@@ -35,11 +32,16 @@ public class ParameterServiceImpl implements IParameterService {
 
     @Resource
     private IBaseService baseService;
+    
     @Resource
     private ITypeDefinitionService typeDefinitionService;
     @Lazy
     @Resource
     private IValueProviderDefinitionService valueProviderDefinitionService;
+
+    @Lazy
+    @Resource
+    private IFunctionCallService functionCallService;
 
     @Override
     public Optional<Parameter> createFromTypeDefinition(TypeDefinition typeDefinition) {
@@ -126,16 +128,27 @@ public class ParameterServiceImpl implements IParameterService {
             parameter.setValue(valueProviderDefinition);
         });
 
+        Optional.ofNullable(parameter.getValueFunction()).map(vf->{
+            return functionCallService.save(vf);
+        }).ifPresent(vf->{
+            parameterRef.setValueFunctionCallInfoId(vf.getId());
+            parameter.setValueFunction(vf);
+        });
+
         // 比较默认值提取器
         Optional.ofNullable(parameter.getDefaultValue()).map(valueProviderDefinition -> {
             // 保存值提取器
             return valueProviderDefinitionService.save(valueProviderDefinition);
         }).ifPresent(valueProviderDefinition -> {
-            if (!valueProviderDefinition.getId().equals(parameterRef.getDefaultValueProviderDefinitionId())) {
-                return;
-            }
             parameterRef.setDefaultValueProviderDefinitionId(valueProviderDefinition.getId());
             parameter.setDefaultValue(valueProviderDefinition);
+        });
+
+        Optional.ofNullable(parameter.getDefaultValueFunction()).map(vf->{
+            return functionCallService.save(vf);
+        }).ifPresent(vf->{
+            parameterRef.setDefaultValueFunctionCallInfoId(vf.getId());
+            parameter.setDefaultValueFunction(vf);
         });
 
         ParameterRef savedParameterRef = Optional.ofNullable(parameter.getId())

@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 //@EnableWebSocket
-@Configuration
 public class WebSocketConfiguration implements WebSocketConfigurer {
     /**
      * 注入ServerEndpointExporter，

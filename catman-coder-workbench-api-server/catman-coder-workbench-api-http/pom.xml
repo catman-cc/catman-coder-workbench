@@ -6,7 +6,7 @@
     <parent>
         <groupId>cc.catman.coder</groupId>
         <artifactId>catman-coder-workbench-api-server</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>cc.catman.coder</groupId>
             <artifactId>catman-coder-workbench-message-netty</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

@@ -1,42 +1,29 @@
 package cc.catman.workbench.api.server.configuration.message;
 
-import cc.catman.coder.workbench.core.message.*;
-import cc.catman.coder.workbench.core.message.channel.DefaultMessageChannel;
+import cc.catman.coder.workbench.core.message.ChannelManager;
+import cc.catman.coder.workbench.core.message.DefaultMessageConnectionManager;
+import cc.catman.coder.workbench.core.message.MessageConnectionManager;
+import cc.catman.coder.workbench.core.message.MessageResult;
 import cc.catman.coder.workbench.core.message.channel.DefaultChannelFactory;
 import cc.catman.coder.workbench.core.message.channel.DefaultChannelManager;
+import cc.catman.coder.workbench.core.message.channel.DefaultMessageChannel;
 import cc.catman.coder.workbench.core.message.channel.HttpValueProviderExecutorMessageChannel;
-import cc.catman.coder.workbench.core.message.exchange.Default1MessageExchange;
-import cc.catman.coder.workbench.core.value.ValueProviderRegistry;
-import cc.catman.workbench.api.server.websocket.run.value.ExecutorMessageSubscriber;
-import cc.catman.coder.workbench.core.value.ValueProviderExecutor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.modelmapper.ModelMapper;
+import cc.catman.coder.workbench.core.message.exchange.DefaultMessageExchange;
+import cc.catman.coder.workbench.core.message.match.AntPathMessageMatch;
+import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.support.GenericConversionService;
 
-import jakarta.annotation.Resource;
-
+@Slf4j
 @Configuration
 public class MessageConfiguration {
-
-    @Resource
-    private ObjectMapper objectMapper;
-    @Resource
-    private ModelMapper modelMapper;
-
-    @Resource
-    private ValueProviderExecutor executor;
-
-    @Resource
-    private ValueProviderRegistry valueProviderRegistry;
-    @Resource
-    private GenericConversionService convertService;
 
     @Bean
     public MessageConnectionManager messageConnectionManager() {
         return DefaultMessageConnectionManager.builder().build();
     }
+
     @Bean
     public ChannelManager channelManager() {
         DefaultChannelFactory channelFactory = DefaultChannelFactory.builder()
@@ -61,22 +48,39 @@ public class MessageConfiguration {
     }
 
     @Bean
-    public MessageExchange messageExchange() {
-        Default1MessageExchange exchange = Default1MessageExchange.builder()
-                .modelMapper(modelMapper)
-                .objectMapper(objectMapper)
-                .build();
+    public DefaultMessageExchange exchange() {
+        DefaultMessageExchange exchange=new DefaultMessageExchange();
 
-        ExecutorMessageSubscriber
-                .builder()
-                .executor(executor)
-                .modelMapper(modelMapper)
-                .objectMapper(objectMapper)
-                .convertService(convertService)
-                .valueProviderRegistry(valueProviderRegistry)
-                .messageQueue(new GroupedMessageQueue<>((key, msg, groupedMessageQueue) -> msg::answer))
-                .build().subscribe(exchange);
+        IMessageSubscriberManager subscriberManager = exchange.getSubscriberManager();
 
+        subscriberManager.addException((message, e) -> {
+            log.error("message exchange error", e);
+        });
+
+        // no match subscriber
+        subscriberManager.addNoMatch((m)->true,(message) -> {
+            log.info("netty message:{}",message);
+            return new MessageResult();
+        });
+
+        // filter
+        exchange.add((message -> {
+            log.info("netty message:{}",message);
+            return true;
+        }));
+
+        // 注册节点接入的消息交换策略
+        exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"),(message -> {
+            // 处理节点接入信息,这里只是打印消息
+            log.info("node-join [1] message:{}",message);
+            return new MessageResult();
+        }));
+
+        exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"),(message -> {
+            // 处理节点接入信息,这里只是打印消息
+            log.info("node-join [2] message:{}",message);
+            return new MessageResult();
+        }));
         return exchange;
     }
 

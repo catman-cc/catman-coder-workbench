@@ -14,7 +14,7 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
 
     protected List<IMessageSubscriber> noMatchMessageSubscriber;
 
-    protected List<IMessageSubscriber> exceptionMessageSubscriber;
+    protected List<IMessageErrorSubscriber> exceptionMessageSubscriber;
 
     protected List<IMessageSubscribeWatcher> watchers;
 
@@ -56,7 +56,7 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
     }
 
     @Override
-    public List<IMessageSubscriber> exceptionMessageSubscriber() {
+    public List<IMessageErrorSubscriber> exceptionMessageSubscriber() {
         return exceptionMessageSubscriber;
     }
 

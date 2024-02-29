@@ -1,6 +1,7 @@
 package cc.catman.workbench.service.core.services;
 
 import cc.catman.coder.workbench.core.SimpleInfo;
+import cc.catman.coder.workbench.core.common.Scope;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.ILoopReferenceContext;
 
@@ -34,12 +35,18 @@ public interface ITypeDefinitionService {
 
     Optional<TypeDefinition> findById(String id, ILoopReferenceContext context);
 
+    default boolean deleteIfNotPublic(String id){
+        return this.findById(id).filter(Scope::isPublic).map(td-> this.delete(td).isPresent()).orElse(false);
+    }
+
     /**
      * 根据id删除类型定义, 删除类型定义时,需要考虑类型定义的范围,如果类型定义是PRIVATE,那么可以删除,如果类型是PUBLIC,在级联状态下,删除级联关系即可,
      * @param id 类型定义id
      * @return 类型定义
      */
     Optional<TypeDefinition> deleteById(String id);
+
+    Optional<TypeDefinition> delete(TypeDefinition typeDefinition);
 
     Optional<TypeDefinition> deleteByBelongId(String belongId);
 

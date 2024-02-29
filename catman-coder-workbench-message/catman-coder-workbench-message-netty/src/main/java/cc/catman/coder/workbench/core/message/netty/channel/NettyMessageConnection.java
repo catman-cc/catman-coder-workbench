@@ -4,33 +4,19 @@ import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageACK;
 import cc.catman.coder.workbench.core.message.MessageConnection;
 import cc.catman.coder.workbench.core.message.MessageContext;
+import cc.catman.coder.workbench.core.message.connection.AbstractMessageConnection;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
  * 基于Netty的消息连接
  */
-public class NettyMessageConnection implements MessageConnection<ChannelHandlerContext> {
-    private ChannelHandlerContext channelHandlerContext;
+public class NettyMessageConnection extends AbstractMessageConnection<ChannelHandlerContext> {
 
-    @Override
-    public String getId() {
-        return null;
-    }
-
-    @Override
-    public String getType() {
-        return null;
-    }
-
-    @Override
-    public ChannelHandlerContext getRawConnection() {
-        return this.channelHandlerContext;
-    }
-
+    public static final String PREFIX="netty-";
     @Override
     public boolean isAlive() {
-        return channelHandlerContext.channel().isActive();
+        return this.getRawConnection().channel().isActive();
     }
 
     @Override
@@ -40,13 +26,15 @@ public class NettyMessageConnection implements MessageConnection<ChannelHandlerC
 
     @Override
     public MessageACK send(Message message) {
-        ChannelFuture channelFuture = channelHandlerContext.writeAndFlush(message);
-        return null;
+        ChannelFuture channelFuture = this.getRawConnection().writeAndFlush(message);
+        return MessageACK.ACK;
     }
 
     public static NettyMessageConnection create(ChannelHandlerContext channelHandlerContext) {
         NettyMessageConnection connection = new NettyMessageConnection();
-        connection.channelHandlerContext = channelHandlerContext;
+        connection.setRawConnection(channelHandlerContext);
+        connection.setId(channelHandlerContext.channel().id().asLongText());
+        connection.setType("netty");
         return connection;
     }
 }

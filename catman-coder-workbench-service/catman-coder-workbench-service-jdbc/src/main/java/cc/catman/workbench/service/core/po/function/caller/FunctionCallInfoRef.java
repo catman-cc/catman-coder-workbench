@@ -27,10 +27,19 @@ public class FunctionCallInfoRef extends CommonRef {
     @GenericGenerator(name="system-uuid", type = CatManIdentifierGenerator.class)
     private String id;
 
+    /**
+     * 名称
+     */
     private String name;
 
+    /**
+     * 函数ID
+     */
     private String functionId;
 
+    /**
+     * 函数类型
+     */
     private String functionKind;
 
 }

@@ -4,7 +4,7 @@ package cc.catman.workbench.api.server.websocket;
 import cc.catman.coder.workbench.core.message.MessageConnection;
 import cc.catman.coder.workbench.core.message.MessageConnectionManager;
 import cc.catman.coder.workbench.core.message.message.JsonTreeMessage;
-import cc.catman.workbench.api.server.configuration.message.WebSocketMessageConnection;
+import cc.catman.workbench.api.server.configuration.message.connection.WebSocketMessageConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 

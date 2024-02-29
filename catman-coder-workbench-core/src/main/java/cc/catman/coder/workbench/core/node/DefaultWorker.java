@@ -1,6 +1,6 @@
 package cc.catman.coder.workbench.core.node;
 
-import cc.catman.coder.workbench.core.message.MessageBus;
+import cc.catman.coder.workbench.core.message.IMessageBus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,7 +18,7 @@ public class DefaultWorker implements IWorker{
 
     private IWorkerManager workerManager;
 
-    private MessageBus messageBus;
+    private IMessageBus messageBus;
 
     private IExecutorService executorService;
 

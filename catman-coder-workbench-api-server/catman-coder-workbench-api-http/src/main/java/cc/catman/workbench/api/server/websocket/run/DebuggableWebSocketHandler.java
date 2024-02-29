@@ -2,13 +2,12 @@ package cc.catman.workbench.api.server.websocket.run;
 
 import cc.catman.coder.workbench.core.message.*;
 import cc.catman.coder.workbench.core.message.message.JsonTreeMessage;
-import cc.catman.workbench.api.server.configuration.message.WebSocketSessionConnection;
+import cc.catman.workbench.api.server.configuration.message.connection.WebSocketSessionConnection;
 import cc.catman.workbench.api.server.websocket.run.debug.IDebugSessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -16,7 +15,6 @@ import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
 import jakarta.annotation.Resource;
 
-@Component
 public class DebuggableWebSocketHandler extends AbstractWebSocketHandler {
 
     @Resource

@@ -5,7 +5,7 @@ import cc.catman.coder.workbench.core.Constants;
 import cc.catman.coder.workbench.core.DefaultLoopReferenceContext;
 import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import cc.catman.coder.workbench.core.common.Scope;
-import cc.catman.coder.workbench.core.runtime.IFunctionCallInfo;
+import cc.catman.coder.workbench.core.function.FunctionCallInfo;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 import cc.catman.coder.workbench.core.value.ValueProviderDefinition;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -66,8 +66,12 @@ public class Parameter extends Base {
     private ValueProviderDefinition value;
 
     @Getter
-    @Setter
-    private IFunctionCallInfo valueFunction;
+    private FunctionCallInfo valueFunction;
+
+    public void setValueFunction(FunctionCallInfo valueFunction){
+        this.valueFunction=valueFunction;
+         this.context.add(valueFunction);
+    }
 
     /**
      * 参数的默认值
@@ -75,7 +79,13 @@ public class Parameter extends Base {
     @Getter
     @Setter
     private ValueProviderDefinition defaultValue;
+    @Getter
+    private FunctionCallInfo defaultValueFunction;
 
+    public void setDefaultValueFunction(FunctionCallInfo defaultValueFunction){
+        this.defaultValueFunction=defaultValueFunction;
+        this.context.add(defaultValueFunction);
+    }
     /**
      *  只有触发器为空,或者触发器返回true时,才会解析当前参数
      *  用于解决递归引用的问题,举例说明,假设有一个参数A,他的值提取器是一个对象,该对象的属性是一个数组,数组的元素是A本身

@@ -6,6 +6,7 @@ import lombok.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
 /**
  * 这里作为一个简单实现,一个channel只能绑定一个session
@@ -17,61 +18,79 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @AllArgsConstructor
 public class DefaultChannelManager implements ChannelManager {
 
-
     private MessageConnectionManager messageConnectionManager;
 
     private IChannelFactory channelFactory;
 
     @Builder.Default
-    private List<MessageChannel> messageChannels =new CopyOnWriteArrayList<>();
+    private List<MessageChannel> messageChannels = new CopyOnWriteArrayList<>();
     @Builder.Default
-    private Map<String, String> channelToSession=new ConcurrentHashMap<>();
+    private Map<String, String> channelToSession = new ConcurrentHashMap<>();
 
     @Override
     public Optional<MessageChannel> getChannel(String id) {
-        return  messageChannels.stream().filter(c -> c.getId().equals(id)).findFirst();
+        return messageChannels.stream().filter(c -> c.getId().equals(id)).findFirst();
     }
 
-    public MessageConnection<?> findBindConnection(String channelId){
-      return Optional.ofNullable( this.channelToSession.get(channelId))
-              .map(s -> this.messageConnectionManager.getConnection(s)).orElseThrow();
+    public MessageConnection<?> findBindConnection(String channelId) {
+        return Optional.ofNullable(this.channelToSession.get(channelId))
+                .map(s -> this.messageConnectionManager.getConnection(s)).orElseThrow();
     }
 
     @Override
     public boolean flushChannel(MessageChannel messageChannel, MessageConnection<?> connection) {
-            if (Optional.ofNullable(messageChannel).isEmpty()){
-                return  false;
-            }
-            if (Optional.ofNullable(connection).isEmpty()){
-                return false;
-            }
-            if (messageChannel.getConnection().equals(connection)){
-                return true;
-            }
-            this.channelToSession.put(messageChannel.getId(),connection.getId());
+        if (Optional.ofNullable(messageChannel).isEmpty()) {
+            return false;
+        }
+        if (Optional.ofNullable(connection).isEmpty()) {
+            return false;
+        }
+        if (messageChannel.getConnection().equals(connection)) {
             return true;
+        }
+        this.channelToSession.put(messageChannel.getId(), connection.getId());
+        this.messageConnectionManager.addConnection(connection);
+        return true;
 
     }
 
     @Override
     public MessageChannel getOrCreateChannel(Message<?> message, MessageConnection<?> connection) {
         // 判断当前是否存在channel,如果存在则获取channel
-        if (Optional.ofNullable(message.getChannelId()).isEmpty()){
+        if (Optional.ofNullable(message.getChannelId()).isEmpty()) {
             // 如果消息中没有channelId,则创建一个channelId
             message.setChannelId(UUID.randomUUID().toString());
         }
-        String cid =message.getChannelId();
+        String cid = message.getChannelId();
         MessageChannel messageChannel = getChannel(cid).orElseGet(() -> createChannel(message, connection));
-        if(flushChannel(messageChannel,connection)){
+        if (flushChannel(messageChannel, connection)) {
             return messageChannel;
         }
-        throw new RuntimeException("can not bind channel to session",new Throwable("channelId:"+cid+" connectionId:"+connection.getId()));
+        throw new RuntimeException("can not bind channel to session", new Throwable("channelId:" + cid + " connectionId:" + connection.getId()));
+    }
+
+    @Override
+    public MessageChannel getOrCreateChannel(Message<?> message, Supplier<MessageConnection<?>> connectionSupplier) {
+        // 判断当前是否存在channel,如果存在则获取channel
+        if (Optional.ofNullable(message.getChannelId()).isEmpty()) {
+            // 如果消息中没有channelId,则创建一个channelId
+            message.setChannelId(UUID.randomUUID().toString());
+        }
+
+        String cid = message.getChannelId();
+
+        MessageConnection<?> messageConnection = connectionSupplier.get();
+        MessageChannel messageChannel = getChannel(cid).orElseGet(() -> createChannel(message, messageConnection));
+        if (flushChannel(messageChannel, messageConnection)) {
+            return messageChannel;
+        }
+        throw new RuntimeException("can not bind channel to session", new Throwable("channelId:" + cid + " connectionId:" + messageConnection.getId()));
     }
 
 
-    protected MessageChannel createChannel(Message<?> message, MessageConnection<?> connection){
-        MessageChannel messageChannel = channelFactory.createChannel(message, connection,this);
-        this.channelToSession.put(messageChannel.getId(),connection.getId());
+    protected MessageChannel createChannel(Message<?> message, MessageConnection<?> connection) {
+        MessageChannel messageChannel = channelFactory.createChannel(message, connection, this);
+        this.channelToSession.put(messageChannel.getId(), connection.getId());
         this.messageChannels.add(messageChannel);
         return messageChannel;
     }

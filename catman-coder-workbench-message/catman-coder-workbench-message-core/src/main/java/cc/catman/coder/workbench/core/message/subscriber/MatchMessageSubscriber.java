@@ -3,9 +3,11 @@ package cc.catman.coder.workbench.core.message.subscriber;
 import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageMatch;
 import cc.catman.coder.workbench.core.message.MessageResult;
+import lombok.Builder;
 
 import java.util.function.Function;
 
+@Builder
 public class MatchMessageSubscriber implements IMessageSubscriber{
     private MessageMatch messageMatch;
     public Function<Message<?>,MessageResult> onReceive;

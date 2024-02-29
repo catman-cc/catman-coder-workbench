@@ -1,5 +1,6 @@
 package cc.catman.coder.workbench.core.runtime;
 
+import cc.catman.coder.workbench.core.function.FunctionCallInfo;
 import cc.catman.coder.workbench.core.runtime.debug.BreakpointInformation;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
 
@@ -42,13 +43,13 @@ public interface IFunctionInfo {
      * 如果在执行finally时,抛出了异常,将会中断finally的执行,并将异常抛出
      * 由上游堆栈处理,或者最终抛出到顶层堆栈
      */
-    List<IFunctionCallInfo> getFinallyCalls();
+    List<FunctionCallInfo> getFinallyCalls();
 
     /**
      * 获取当前函数的内部函数调用队列,有可能为空
      * 函数调用可能会出现递归调用,因此在序列化时需要注意
      */
-    List<IFunctionCallInfo> getCallQueue();
+    List<FunctionCallInfo> getCallQueue();
 
     /**
      * 获取当前函数的提供的断点信息,每一个方法都默认提供下列几个断点:

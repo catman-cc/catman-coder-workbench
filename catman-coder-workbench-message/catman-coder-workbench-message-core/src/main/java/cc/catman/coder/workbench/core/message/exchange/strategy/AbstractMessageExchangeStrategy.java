@@ -1,5 +1,6 @@
 package cc.catman.coder.workbench.core.message.exchange.strategy;
 
+import cc.catman.coder.workbench.core.message.exception.MessageExchangeStrategyNotFoundRuntimeException;
 import cc.catman.coder.workbench.core.message.exchange.IMessageExchangeStrategy;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
 import cc.catman.coder.workbench.core.message.Message;
@@ -29,7 +30,7 @@ public abstract class AbstractMessageExchangeStrategy implements IMessageExchang
         } catch (Exception e) {
             // 异常处理
             subscriberManager.exceptionMessageSubscriber()
-                    .forEach(subscriber -> subscriber.onReceive(message));
+                    .forEach(subscriber -> subscriber.onError(message,new MessageExchangeStrategyNotFoundRuntimeException(e,message)));
         }
     }
 

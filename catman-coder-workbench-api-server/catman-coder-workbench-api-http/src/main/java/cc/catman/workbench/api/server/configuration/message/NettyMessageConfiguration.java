@@ -1,11 +1,12 @@
 package cc.catman.workbench.api.server.configuration.message;
 
+import cc.catman.coder.workbench.core.message.ChannelManager;
 import cc.catman.coder.workbench.core.message.exchange.DefaultMessageExchange;
 import cc.catman.coder.workbench.core.message.netty.NettyMessageServer;
 import cc.catman.coder.workbench.core.message.netty.serialize.MessageSerializeConfiguration;
 import cc.catman.coder.workbench.core.message.netty.serialize.MessageSerializeFactory;
 import cc.catman.coder.workbench.core.message.netty.server.NettyMessageServerConfiguration;
-import cc.catman.workbench.api.server.configuration.message.exchange.MessageExchangeChannelHandler;
+import cc.catman.workbench.api.server.configuration.message.handlers.NettyMessageChannelHandler;
 import cc.catman.workbench.api.server.configuration.message.serialize.FuryMessageSerialize;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,9 @@ public class NettyMessageConfiguration  {
     @Resource
     private DefaultMessageExchange exchange;
 
+    @Resource
+    private ChannelManager channelManager;
+
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
 
@@ -29,7 +33,7 @@ public class NettyMessageConfiguration  {
         MessageSerializeFactory messageSerializeFactory = messageSerializeConfiguration.getMessageSerializeFactory();
 
         messageSerializeFactory.register(FuryMessageSerialize.FURY_SERIALIZE_TYPE, new FuryMessageSerialize());
-        configuration.addChannelHandler(new MessageExchangeChannelHandler(exchange));
+        configuration.addChannelHandler(new NettyMessageChannelHandler(exchange,channelManager));
 
         NettyMessageServer server=NettyMessageServer.create(configuration);
         new Thread(server::start).start();

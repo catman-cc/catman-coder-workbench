@@ -1,4 +1,4 @@
-package cc.catman.workbench.api.server.configuration.message;
+package cc.catman.workbench.api.server.configuration.message.connection;
 
 import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageACK;
@@ -18,6 +18,8 @@ import org.springframework.web.socket.WebSocketSession;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class WebSocketSessionConnection extends AbstractMessageConnection<WebSocketSession> {
+
+    public static final String PREFIX="websocket-";
     private ObjectMapper objectMapper;
 
     @Override

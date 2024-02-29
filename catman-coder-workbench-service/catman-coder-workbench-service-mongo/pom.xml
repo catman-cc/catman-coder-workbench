@@ -6,7 +6,7 @@
     <parent>
         <groupId>cc.catman.coder</groupId>
         <artifactId>catman-coder-workbench-service</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>catman-coder-workbench-service-mongo</artifactId>

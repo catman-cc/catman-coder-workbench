@@ -4,6 +4,7 @@ import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageMatch;
 import cc.catman.coder.workbench.core.message.MessageResult;
 import cc.catman.coder.workbench.core.message.MessageType;
+import cc.catman.coder.workbench.core.message.exception.MessageExchangeStrategyNotFoundRuntimeException;
 import cc.catman.coder.workbench.core.message.exchange.strategy.BroadcastMessageExchangeStrategy;
 import cc.catman.coder.workbench.core.message.exchange.strategy.UnicastMessageExchangeStrategy;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageFilter;
@@ -20,17 +21,17 @@ import java.util.function.Function;
  * 默认消息交换器
  */
 public class DefaultMessageExchange implements IMessageExchange {
-    private Map<MessageType,IMessageExchangeStrategy> messageExchangeStrategies;
+    private Map<MessageType, IMessageExchangeStrategy> messageExchangeStrategies;
 
     @Getter
     private IMessageSubscriberManager subscriberManager;
 
     public DefaultMessageExchange() {
-        this.messageExchangeStrategies=new HashMap<>();
-        this.subscriberManager=new DefaultMessageSubscriberManager();
+        this.messageExchangeStrategies = new HashMap<>();
+        this.subscriberManager = new DefaultMessageSubscriberManager();
         // 注册默认的消息交换策略
-        this.register(MessageType.BROADCAST,new BroadcastMessageExchangeStrategy(this.subscriberManager));
-        this.register(MessageType.UNICAST,new UnicastMessageExchangeStrategy(this.subscriberManager));
+        this.register(MessageType.BROADCAST, new BroadcastMessageExchangeStrategy(this.subscriberManager));
+        this.register(MessageType.UNICAST, new UnicastMessageExchangeStrategy(this.subscriberManager));
     }
 
     public DefaultMessageExchange(Map<MessageType, IMessageExchangeStrategy> messageExchangeStrategies) {
@@ -40,40 +41,44 @@ public class DefaultMessageExchange implements IMessageExchange {
     @Override
     public void exchange(Message<?> message) {
 
-        this.subscriberManager.filters().forEach(filter->filter.filter(message));
+        this.subscriberManager.filters().forEach(filter -> filter.filter(message));
 
         IMessageExchangeStrategy messageExchangeStrategy = messageExchangeStrategies.get(message.getType());
-        if (messageExchangeStrategy != null){
-            messageExchangeStrategy.exchange(message);
+
+        if (messageExchangeStrategy == null) {
+            // 没有找到对应的策略,属于异常消息,所以触发异常消息订阅者
+            this.subscriberManager.onError(message, new MessageExchangeStrategyNotFoundRuntimeException(message));
+            return;
         }
+        messageExchangeStrategy.exchange(message);
     }
 
-    public DefaultMessageExchange register(MessageType messageType,IMessageExchangeStrategy messageExchangeStrategy){
-        messageExchangeStrategies.put(messageType,messageExchangeStrategy);
+    public DefaultMessageExchange register(MessageType messageType, IMessageExchangeStrategy messageExchangeStrategy) {
+        messageExchangeStrategies.put(messageType, messageExchangeStrategy);
         return this;
     }
 
-    public DefaultMessageExchange unregister(MessageType messageType){
+    public DefaultMessageExchange unregister(MessageType messageType) {
         messageExchangeStrategies.remove(messageType);
         return this;
     }
 
-    public DefaultMessageExchange add(IMessageSubscriber subscriber){
+    public DefaultMessageExchange add(IMessageSubscriber subscriber) {
         subscriberManager.addSubscriber(subscriber);
         return this;
     }
 
-    public DefaultMessageExchange add(MessageMatch match, Function<Message<?>, MessageResult> func){
-        subscriberManager.add(match,func);
+    public DefaultMessageExchange add(MessageMatch match, Function<Message<?>, MessageResult> func) {
+        subscriberManager.add(match, func);
         return this;
     }
 
-    public DefaultMessageExchange add(IMessageFilter filter){
+    public DefaultMessageExchange add(IMessageFilter filter) {
         subscriberManager.add(filter);
         return this;
     }
 
-    public DefaultMessageExchange remove(IMessageFilter  filter){
+    public DefaultMessageExchange remove(IMessageFilter filter) {
         subscriberManager.remove(filter);
         return this;
     }

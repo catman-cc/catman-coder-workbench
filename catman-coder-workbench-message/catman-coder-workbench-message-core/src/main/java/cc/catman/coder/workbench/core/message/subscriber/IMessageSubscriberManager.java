@@ -38,7 +38,7 @@ public interface IMessageSubscriberManager {
 
     List<IMessageSubscriber> noMatchMessageSubscriber();
 
-    List<IMessageSubscriber> exceptionMessageSubscriber();
+    List<IMessageErrorSubscriber> exceptionMessageSubscriber();
 
     void triggerWatchBefore(Message<?> message, IMessageSubscriber subscriber);
     void triggerWatchAfter(Message<?> message, IMessageSubscriber subscriber);
@@ -49,7 +49,51 @@ public interface IMessageSubscriberManager {
 
     void add(IMessageFilter filter);
 
+    default void addNoMatch(Function<Message<?>, MessageResult> func){
+        this.addNoMatch((message -> true),func);
+    }
+
+    default void addNoMatch(MessageMatch match,Function<Message<?>, MessageResult> func){
+        this.addNoMatch(MatchMessageSubscriber.builder()
+                .messageMatch(match)
+                .onReceive(func).build());
+    }
+
+    default void addNoMatch(MatchMessageSubscriber matchMessageSubscriber){
+        this.noMatchMessageSubscriber().add(matchMessageSubscriber);
+    }
+
+    default void addException(MessageMatch match,MatchMessageErrorSubscriber.ErrorHandler func){
+        this.addException(MatchMessageErrorSubscriber.builder()
+                .messageMatch(match)
+                .onError(func).build());
+    }
+
+    default void addException(IMessageErrorSubscriber matchMessageSubscriber){
+        this.exceptionMessageSubscriber().add(matchMessageSubscriber);
+    }
+
+   default void addException(MatchMessageErrorSubscriber.ErrorHandler func){
+        this.addException((message -> true),func);
+   }
+
     void add(MessageMatch match, Function<Message<?>, MessageResult> func);
 
     void remove(IMessageFilter filter);
+
+   default void onError(Message<?> message, Throwable error){
+       this.exceptionMessageSubscriber().forEach(subscriber -> {
+           if (subscriber.isMatch(message)){
+               subscriber.onError(message,error);
+           }
+       });
+   }
+
+   default void onNoMatch(Message<?> message){
+       this.noMatchMessageSubscriber().forEach(subscriber -> {
+           if (subscriber.isMatch(message)){
+               subscriber.onReceive(message);
+           }
+       });
+   }
 }

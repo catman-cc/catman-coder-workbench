@@ -23,6 +23,13 @@ public class DefaultChannelFactory implements IChannelFactory {
     @Override
     public MessageChannel createChannel(Message<?> message, MessageConnection<?> connection, ChannelManager channelManager) {
         String channelKind = Optional.ofNullable(message.getChannelKind()).orElse("default");
-        return Optional.ofNullable(channelCreatorMap.get(channelKind)).map(c -> c.createChannel(message, connection, channelManager)).orElseThrow();
+        return Optional.ofNullable(channelCreatorMap.get(channelKind))
+                .map(c ->{
+                    MessageChannel channel = c.createChannel(message, connection, channelManager);
+                    message.setMessageChannel(channel);
+                    message.answer(Message.of(Map.of("channelId", channel.getId(), "channelKind", channelKind)));
+                    return channel;
+                })
+                .orElseThrow();
     }
 }

@@ -1,6 +1,7 @@
 package cc.catman.coder.workbench.core.node;
 
-import cc.catman.coder.workbench.core.message.MessageBus;
+
+import cc.catman.coder.workbench.core.message.IMessageBus;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public interface IWorker {
      */
     IWorkerManager getWorkerManager();
 
-    MessageBus getMessageBus();
+    IMessageBus getMessageBus();
     /**
      * 获取执行器服务,如果工作节点不具有执行器能力,则返回null
      */

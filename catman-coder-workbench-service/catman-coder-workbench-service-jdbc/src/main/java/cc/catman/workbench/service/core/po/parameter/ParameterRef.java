@@ -55,8 +55,12 @@ public class ParameterRef extends CommonRef {
 
     private String valueProviderDefinitionId;
 
+    private String valueFunctionCallInfoId;
+
 
     private String defaultValueProviderDefinitionId;
+
+    private String defaultValueFunctionCallInfoId;
 
 
     private boolean required;

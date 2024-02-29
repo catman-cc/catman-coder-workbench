@@ -1,8 +1,7 @@
-package cc.catman.workbench.service.core.po.function.caller;
+package cc.catman.workbench.service.core.po.function;
 
 import cc.catman.workbench.configuration.id.CatManIdentifierGenerator;
 import cc.catman.workbench.service.core.po.CommonRef;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
