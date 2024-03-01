@@ -7,6 +7,8 @@ import java.util.function.Supplier;
  * 消息信道管理器
  */
 public interface ChannelManager {
+
+    IChannelFactory getChannelFactory();
     Optional<MessageChannel> getChannel(String id);
 
     MessageConnectionManager getMessageConnectionManager();

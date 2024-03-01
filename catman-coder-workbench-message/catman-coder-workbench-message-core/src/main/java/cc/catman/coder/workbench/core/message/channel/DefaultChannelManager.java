@@ -2,10 +2,12 @@ package cc.catman.coder.workbench.core.message.channel;
 
 import cc.catman.coder.workbench.core.message.*;
 import lombok.*;
+import org.codehaus.commons.nullanalysis.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Supplier;
 
 /**
@@ -17,24 +19,24 @@ import java.util.function.Supplier;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DefaultChannelManager implements ChannelManager {
-
-    private MessageConnectionManager messageConnectionManager;
-
-    private IChannelFactory channelFactory;
+    @Builder.Default
+    private MessageConnectionManager messageConnectionManager=new DefaultMessageConnectionManager();
+    @Builder.Default
+    private IChannelFactory channelFactory= new DefaultChannelFactory();
 
     @Builder.Default
-    private List<MessageChannel> messageChannels = new CopyOnWriteArrayList<>();
+    private Set<MessageChannel> messageChannels = new CopyOnWriteArraySet<>();
     @Builder.Default
     private Map<String, String> channelToSession = new ConcurrentHashMap<>();
 
     @Override
     public Optional<MessageChannel> getChannel(String id) {
-        return messageChannels.stream().filter(c -> c.getId().equals(id)).findFirst();
+        return Optional.ofNullable(id).flatMap(cid->messageChannels.stream().filter(c -> c.getId().equals(cid)).findFirst());
     }
 
     public MessageConnection<?> findBindConnection(String channelId) {
         return Optional.ofNullable(this.channelToSession.get(channelId))
-                .map(s -> this.messageConnectionManager.getConnection(s)).orElseThrow();
+                .map(s -> this.messageConnectionManager.getConnection(s)).orElse(null);
     }
 
     @Override
@@ -45,7 +47,7 @@ public class DefaultChannelManager implements ChannelManager {
         if (Optional.ofNullable(connection).isEmpty()) {
             return false;
         }
-        if (messageChannel.getConnection().equals(connection)) {
+        if (connection.equals(messageChannel.getConnection())) {
             return true;
         }
         this.channelToSession.put(messageChannel.getId(), connection.getId());
@@ -56,31 +58,27 @@ public class DefaultChannelManager implements ChannelManager {
 
     @Override
     public MessageChannel getOrCreateChannel(Message<?> message, MessageConnection<?> connection) {
-        // 判断当前是否存在channel,如果存在则获取channel
-        if (Optional.ofNullable(message.getChannelId()).isEmpty()) {
-            // 如果消息中没有channelId,则创建一个channelId
-            message.setChannelId(UUID.randomUUID().toString());
-        }
-        String cid = message.getChannelId();
-        MessageChannel messageChannel = getChannel(cid).orElseGet(() -> createChannel(message, connection));
-        if (flushChannel(messageChannel, connection)) {
-            return messageChannel;
-        }
-        throw new RuntimeException("can not bind channel to session", new Throwable("channelId:" + cid + " connectionId:" + connection.getId()));
+        return getMessageChannel(message,  message.getChannelId(), connection);
     }
 
     @Override
     public MessageChannel getOrCreateChannel(Message<?> message, Supplier<MessageConnection<?>> connectionSupplier) {
-        // 判断当前是否存在channel,如果存在则获取channel
-        if (Optional.ofNullable(message.getChannelId()).isEmpty()) {
-            // 如果消息中没有channelId,则创建一个channelId
-            message.setChannelId(UUID.randomUUID().toString());
+        MessageConnection<?> messageConnection = connectionSupplier.get();
+        return getMessageChannel(message,  message.getChannelId(), messageConnection);
+    }
+
+    @Nullable
+    private MessageChannel getMessageChannel(Message<?> message, String cid, MessageConnection<?> messageConnection) {
+        if (Optional.ofNullable(cid).isPresent()){
+            return getChannel(cid)
+                    .orElseThrow(()->new RuntimeException("can not find channel", new Throwable("channelId:" + cid + " connectionId:" + messageConnection.getId())));
         }
 
-        String cid = message.getChannelId();
-
-        MessageConnection<?> messageConnection = connectionSupplier.get();
-        MessageChannel messageChannel = getChannel(cid).orElseGet(() -> createChannel(message, messageConnection));
+        MessageChannel messageChannel = createChannel(message, messageConnection);
+        if (messageChannel==null){
+            throw new RuntimeException("can not create channel", new Throwable("channelId:" + cid + " connectionId:" + messageConnection.getId()));
+        }
+        message.setMessageChannel(messageChannel);
         if (flushChannel(messageChannel, messageConnection)) {
             return messageChannel;
         }
@@ -90,6 +88,9 @@ public class DefaultChannelManager implements ChannelManager {
 
     protected MessageChannel createChannel(Message<?> message, MessageConnection<?> connection) {
         MessageChannel messageChannel = channelFactory.createChannel(message, connection, this);
+        if (messageChannel == null) {
+            return null;
+        }
         this.channelToSession.put(messageChannel.getId(), connection.getId());
         this.messageChannels.add(messageChannel);
         return messageChannel;

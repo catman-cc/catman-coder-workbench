@@ -40,9 +40,7 @@ public class WebSocketMessageHandler extends AbstractWebSocketHandler {
                                 .rawConnection(session)
                                 .build());
 
-        // 调用ChannelManager获取Channel,并将Channel设置到Message中
-       channelManager.getOrCreateChannel(mes, connection);
-        this.messageExchange.exchange(mes);
+        this.messageExchange.exchange(mes,connection);
     }
 
     @Override

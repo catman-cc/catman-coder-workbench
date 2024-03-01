@@ -17,8 +17,10 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.IdGenerator;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Configuration
@@ -29,6 +31,19 @@ public class MessageConfiguration {
     private List<IMessageSubscriber> subscribers;
     @Resource
     private ObjectMapper objectMapper;
+    @Resource
+    private IdGenerator idGenerator;
+
+    private static MessageChannel createChannel(Message<?> message, MessageConnection<?> connection, ChannelManager channelManager) {
+        String cid = "default-" + connection.getId();
+        synchronized (cid) {
+            return channelManager.getChannel(cid).orElseGet(() -> DefaultMessageChannel.builder()
+                    .id(cid)
+                    .connection(connection)
+                    .channelManager(channelManager)
+                    .build());
+        }
+    }
 
     @Bean
     public MessageConnectionManager messageConnectionManager() {
@@ -60,16 +75,30 @@ public class MessageConfiguration {
 
     @Bean
     public DefaultMessageExchange exchange() {
-        DefaultMessageExchange exchange=new DefaultMessageExchange();
+        DefaultMessageExchange exchange = new DefaultMessageExchange();
         processSubscriberFilters(exchange);
         // 注册JSON对象解码器
         processMessageDecoderFactory(exchange);
         // 注册订阅者
         processSubscriber(exchange);
+        processChannelFactory(exchange);
 
         // 注册自定义订阅者
         subscribers.forEach(exchange::add);
         return exchange;
+    }
+
+    private void processChannelFactory(DefaultMessageExchange exchange) {
+        // 默认信道,用于处理默认消息,一条连接有且只有一个默认信道
+        exchange.getChannelManager().getChannelFactory()
+                .add("default", MessageConfiguration::createChannel
+                )
+                .add("RunSimpleHttpValueProvider", (message, connection, channelManager) -> HttpValueProviderExecutorMessageChannel.builder()
+                        .id(Optional.ofNullable(message.getChannelId()).orElseGet(() -> idGenerator.generateId().toString()))
+                        .connection(connection)
+                        .channelManager(channelManager)
+                        .build()
+                );
     }
 
     public void processSubscriberFilters(DefaultMessageExchange exchange) {
@@ -91,27 +120,27 @@ public class MessageConfiguration {
         });
 
         // no match subscriber
-        subscriberManager.addNoMatch((m)->true,(message) -> {
-            log.info("netty message:{}",message);
+        subscriberManager.addNoMatch((m) -> true, (message) -> {
+            log.info("netty message:{}", message);
             return MessageResult.ack();
         });
 
         // filter
         exchange.add((message -> {
-            log.info("netty message:{}",message);
+            log.info("netty message:{}", message);
             return true;
         }));
 
         // 注册节点接入的消息交换策略
-        exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"),(message -> {
+        exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"), (message -> {
             // 处理节点接入信息,这里只是打印消息
-            log.info("node-join [1] message:{}",message);
+            log.info("node-join [1] message:{}", message);
             return MessageResult.ack();
         }));
 
-        exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"),(message -> {
+        exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"), (message -> {
             // 处理节点接入信息,这里只是打印消息
-            log.info("node-join [2] message:{}",message);
+            log.info("node-join [2] message:{}", message);
             return MessageResult.ack();
         }));
     }

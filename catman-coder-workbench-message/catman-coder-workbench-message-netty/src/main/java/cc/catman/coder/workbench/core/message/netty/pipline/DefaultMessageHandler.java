@@ -18,6 +18,5 @@ public class DefaultMessageHandler extends SimpleChannelInboundHandler<Message<?
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Message<?> message) throws Exception {
-        messageExchange.exchange(message);
     }
 }

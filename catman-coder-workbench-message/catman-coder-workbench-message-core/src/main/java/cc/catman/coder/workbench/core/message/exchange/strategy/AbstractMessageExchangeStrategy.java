@@ -5,6 +5,9 @@ import cc.catman.coder.workbench.core.message.exchange.IMessageExchangeStrategy;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
 import cc.catman.coder.workbench.core.message.Message;
 
+import java.util.Map;
+import java.util.Optional;
+
 public abstract class AbstractMessageExchangeStrategy implements IMessageExchangeStrategy {
 
     /**
@@ -27,10 +30,21 @@ public abstract class AbstractMessageExchangeStrategy implements IMessageExchang
                 subscriberManager.noMatchMessageSubscriber()
                         .forEach(subscriber -> subscriber.onReceive(message));
             }
+            // 回传一条消息,表示消息已经处理完成
+            message.answer(Message.create("ack", Map.of(
+                    "msgId",Optional.ofNullable(message.getId()).orElse(""),
+                    "res","ack"
+            )));
         } catch (Exception e) {
             // 异常处理
             subscriberManager.exceptionMessageSubscriber()
                     .forEach(subscriber -> subscriber.onError(message,new MessageExchangeStrategyNotFoundRuntimeException(e,message)));
+            // 回传一条消息,表示消息已经处理完成
+            message.answer(Message.create("ack", Map.of(
+                    "msgId", Optional.ofNullable(message.getId()).orElse(""),
+                    "res","err",
+                    "reason",e.getMessage()
+            )));
         }
     }
 

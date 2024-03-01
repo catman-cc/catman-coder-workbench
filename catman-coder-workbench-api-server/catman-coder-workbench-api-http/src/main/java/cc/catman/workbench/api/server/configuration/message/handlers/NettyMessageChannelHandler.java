@@ -24,14 +24,9 @@ public class NettyMessageChannelHandler extends SimpleChannelInboundHandler<Mess
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Message<?> message) throws Exception {
         MessageConnectionManager messageConnectionManager = this.channelManager.getMessageConnectionManager();
-
-       channelManager.getOrCreateChannel(message, () ->
-                messageConnectionManager.getOrCreateConnection(
-                        NettyMessageConnection.PREFIX + channelHandlerContext.channel().id().asLongText()
-                        , (id) -> NettyMessageConnection.create(channelHandlerContext)
-                )
-        );
-
-        exchange.exchange(message);
+         exchange.exchange(message,  messageConnectionManager.getOrCreateConnection(
+                NettyMessageConnection.PREFIX + channelHandlerContext.channel().id().asLongText()
+                , (id) -> NettyMessageConnection.create(channelHandlerContext)
+        ));
     }
 }
