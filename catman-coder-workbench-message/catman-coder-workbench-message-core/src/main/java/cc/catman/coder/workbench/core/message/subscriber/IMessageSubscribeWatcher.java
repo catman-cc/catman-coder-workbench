@@ -8,6 +8,9 @@ import cc.catman.coder.workbench.core.message.Message;
  */
 public interface IMessageSubscribeWatcher {
    default void start(){}
+    default void afterAddSubscriber(IMessageSubscriber subscriber, IMessageSubscriberManager manager){}
+
+    default  void beforeRemoveSubscriber(IMessageSubscriber subscriber, IMessageSubscriberManager manager){}
 
     default void onWatchBefore(Message<?> message, IMessageSubscriber subscriber, IMessageSubscriberManager manager){}
 

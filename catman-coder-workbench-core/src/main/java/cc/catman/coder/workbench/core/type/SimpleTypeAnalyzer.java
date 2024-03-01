@@ -48,6 +48,7 @@ public class SimpleTypeAnalyzer {
         TypeDefinition typeDefinition = TypeDefinition.builder()
                 .type(type)
                 .name(typeDesc.name)
+                .describe(typeDesc.desc)
                 .build();
         if(this.typeDesc.items != null){
             this.typeDesc.items.forEach(item -> {
@@ -63,6 +64,8 @@ public class SimpleTypeAnalyzer {
     public static class TypeDesc{
         String name;
         String type;
+        String desc;
+        boolean required;
         List<TypeDesc> items=new ArrayList<>();
 
         public static TypeDesc create(){
@@ -79,6 +82,15 @@ public class SimpleTypeAnalyzer {
             return this;
         }
 
+        public TypeDesc desc(String desc){
+            this.desc = desc;
+            return this;
+        }
+        public TypeDesc required(boolean required){
+            this.required = required;
+            return this;
+        }
+
         public TypeDesc items(List<TypeDesc> items){
             this.items = items;
             return this;
@@ -91,6 +103,16 @@ public class SimpleTypeAnalyzer {
 
         public TypeDesc add(String name, String type){
             this.items.add(TypeDesc.create().name(name).type(type));
+            return this;
+        }
+
+        public TypeDesc add(String name, String type, String desc){
+            this.items.add(TypeDesc.create().name(name).type(type).desc(desc));
+            return this;
+        }
+
+        public TypeDesc add(String name, String type, String desc, boolean required){
+            this.items.add(TypeDesc.create().name(name).type(type).desc(desc).required(required));
             return this;
         }
 

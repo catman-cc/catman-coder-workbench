@@ -19,7 +19,7 @@ public class UnicastMessageExchangeStrategy extends AbstractMessageExchangeStrat
 
     @Override
     public void doExchange(Message<?> message) {
-        List<IMessageSubscriber> subscribers = this.subscriberManager.list();
+        List<IMessageSubscriber> subscribers = this.subscriberManager.list(message);
         Optional<IMessageSubscriber> find = subscribers.stream()
                 .filter(subscriber -> subscriber.isMatch(message))
                 .findFirst();

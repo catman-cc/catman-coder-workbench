@@ -1,23 +1,34 @@
 package cc.catman.workbench.api.server.configuration.message;
 
-import cc.catman.coder.workbench.core.message.ChannelManager;
-import cc.catman.coder.workbench.core.message.DefaultMessageConnectionManager;
-import cc.catman.coder.workbench.core.message.MessageConnectionManager;
-import cc.catman.coder.workbench.core.message.MessageResult;
+import cc.catman.coder.workbench.core.message.*;
 import cc.catman.coder.workbench.core.message.channel.DefaultChannelFactory;
 import cc.catman.coder.workbench.core.message.channel.DefaultChannelManager;
 import cc.catman.coder.workbench.core.message.channel.DefaultMessageChannel;
 import cc.catman.coder.workbench.core.message.channel.HttpValueProviderExecutorMessageChannel;
 import cc.catman.coder.workbench.core.message.exchange.DefaultMessageExchange;
 import cc.catman.coder.workbench.core.message.match.AntPathMessageMatch;
+import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriber;
+import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberFilterFactory;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
+import cc.catman.coder.workbench.core.message.subscriber.filter.MessageTypeMessageSubscriberFilterCreator;
+import cc.catman.coder.workbench.core.message.subscriber.filter.P2PMessageSubscriberFilterCreator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Slf4j
 @Configuration
 public class MessageConfiguration {
+
+
+    @Resource
+    private List<IMessageSubscriber> subscribers;
+    @Resource
+    private ObjectMapper objectMapper;
 
     @Bean
     public MessageConnectionManager messageConnectionManager() {
@@ -50,9 +61,31 @@ public class MessageConfiguration {
     @Bean
     public DefaultMessageExchange exchange() {
         DefaultMessageExchange exchange=new DefaultMessageExchange();
+        processSubscriberFilters(exchange);
+        // 注册JSON对象解码器
+        processMessageDecoderFactory(exchange);
+        // 注册订阅者
+        processSubscriber(exchange);
 
+        // 注册自定义订阅者
+        subscribers.forEach(exchange::add);
+        return exchange;
+    }
+
+    public void processSubscriberFilters(DefaultMessageExchange exchange) {
         IMessageSubscriberManager subscriberManager = exchange.getSubscriberManager();
+        IMessageSubscriberFilterFactory filterFactory = subscriberManager.getFilterFactory();
+        filterFactory.register(new MessageTypeMessageSubscriberFilterCreator())
+                .register(new P2PMessageSubscriberFilterCreator());
+    }
 
+    public void processMessageDecoderFactory(DefaultMessageExchange exchange) {
+        exchange.getMessageDecoderFactory().add(new ObjectMapperMessageDecoder(objectMapper));
+    }
+
+    public void processSubscriber(DefaultMessageExchange exchange) {
+        IMessageSubscriberManager subscriberManager = exchange.getSubscriberManager();
+        // 异常订阅者
         subscriberManager.addException((message, e) -> {
             log.error("message exchange error", e);
         });
@@ -60,7 +93,7 @@ public class MessageConfiguration {
         // no match subscriber
         subscriberManager.addNoMatch((m)->true,(message) -> {
             log.info("netty message:{}",message);
-            return new MessageResult();
+            return MessageResult.ack();
         });
 
         // filter
@@ -73,15 +106,13 @@ public class MessageConfiguration {
         exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"),(message -> {
             // 处理节点接入信息,这里只是打印消息
             log.info("node-join [1] message:{}",message);
-            return new MessageResult();
+            return MessageResult.ack();
         }));
 
         exchange.add(AntPathMessageMatch.of("catman.cc/core/node/**"),(message -> {
             // 处理节点接入信息,这里只是打印消息
             log.info("node-join [2] message:{}",message);
-            return new MessageResult();
+            return MessageResult.ack();
         }));
-        return exchange;
     }
-
 }

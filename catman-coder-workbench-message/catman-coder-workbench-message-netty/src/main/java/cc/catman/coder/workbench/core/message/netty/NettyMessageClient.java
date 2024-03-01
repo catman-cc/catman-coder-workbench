@@ -1,5 +1,6 @@
 package cc.catman.coder.workbench.core.message.netty;
 
+import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.netty.client.ClientChannelInitializer;
 import cc.catman.coder.workbench.core.message.netty.client.NettyClientConfiguration;
 import io.netty.bootstrap.Bootstrap;
@@ -66,5 +67,13 @@ public class NettyMessageClient {
             return channel;
         }
         return connect();
+    }
+
+    public void send(Message<?> message) {
+        Channel channel = getConnection();
+        // 将数据发送到服务端
+        // 在发送到服务端之前,根据需要考虑添加一些额外的处理逻辑
+        // 比如,添加系统级监听器,监听消息发送的状态
+        channel.writeAndFlush(message);
     }
 }

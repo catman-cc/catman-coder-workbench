@@ -11,9 +11,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.checkerframework.checker.units.qual.A;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 函数定义
@@ -56,7 +54,8 @@ public class FunctionInfo extends Base implements IFunctionInfo {
      */
     @Getter
     @Setter
-    private Map<String,TypeDefinition> args;
+    @Builder.Default
+    private Map<String,TypeDefinition> args=new LinkedHashMap<>();
 
     /**
      * 函数的返回值

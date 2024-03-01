@@ -44,7 +44,8 @@ public class FunctionInfoServiceImpl implements IFunctionInfoService {
     @Resource
     private IBaseService baseService;
 
-
+    @Resource
+    IFunctionInfoManager functionInfoManager;
 
     @Resource
     private IFunctionInfoRefRepository functionInfoRefRepository;
@@ -152,6 +153,30 @@ public class FunctionInfoServiceImpl implements IFunctionInfoService {
         });
 
         return this.findById(fir.getId()).orElseThrow(()->new RuntimeException("FunctionInfo not found by id: " + fir.getId()));
+    }
+
+    @Override
+    public FunctionInfo findByKind(String kind) {
+        return this.functionInfoManager.load(null,kind,this);
+    }
+
+    @Override
+    public FunctionInfo fillIfNeed(FunctionInfo functionInfo) {
+        // 此处填充函数会忽略内部数据,仅在意id,kind,出入参类型
+        if (functionInfo == null){
+            return null;
+        }
+        FunctionInfo load = this.functionInfoManager.load(functionInfo.getId(), functionInfo.getKind(), this);
+        if(Optional.ofNullable(load).isPresent()){
+            return load;
+        }
+        // 如果没有加载到函数信息,该如何处理?
+        return functionInfo;
+    }
+
+    @Override
+    public boolean isInnerFunction(String kind) {
+       return this.functionInfoManager.isInner(kind);
     }
 
     protected void deleteTypeDefinitionIfNotPublic(FunctionInfo functionInfo){

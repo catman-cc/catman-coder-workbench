@@ -66,6 +66,11 @@ public interface Type {
         return false;
     }
 
+    @JsonIgnore
+    default boolean isFunction() {
+        return false;
+    }
+
     /**
      * 判断一个类型是否可以转换为另一个类型
      */

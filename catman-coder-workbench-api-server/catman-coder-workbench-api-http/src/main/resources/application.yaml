@@ -28,3 +28,8 @@ logging:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
     org.hibernate.type.descriptor.sql.BasicExtractor: trace
+    cc:
+      catman:
+        coder:
+          workbench:
+            core: debug

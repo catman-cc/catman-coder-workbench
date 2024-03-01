@@ -11,6 +11,8 @@ import java.util.function.Function;
  * 消息订阅者管理器,用于管理消息订阅者
  */
 public interface IMessageSubscriberManager {
+
+    IMessageSubscriberFilterFactory getFilterFactory();
     /**
      * 添加订阅者
      *
@@ -33,6 +35,8 @@ public interface IMessageSubscriberManager {
      * 获取订阅者
      */
     List<IMessageSubscriber> list();
+
+    List<IMessageSubscriber> list(Message<?> message);
 
     List<IMessageFilter> filters();
 
@@ -77,7 +81,7 @@ public interface IMessageSubscriberManager {
         this.addException((message -> true),func);
    }
 
-    void add(MessageMatch match, Function<Message<?>, MessageResult> func);
+    IMessageSubscriber add(MessageMatch match, Function<Message<?>, MessageResult> func);
 
     void remove(IMessageFilter filter);
 

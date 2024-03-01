@@ -18,12 +18,9 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Field;
 import java.util.*;
 
-/**
- * 类型分析
- */
 @Data
 @Builder
-public class TypeAnalyzer {
+public class AnnotationTypeAnalyzer {
     /**
      * jdk自带类型过滤
      */
@@ -46,27 +43,29 @@ public class TypeAnalyzer {
 
 
     @Builder.Default
-    List<Analyzer> analyzers = new ArrayList<>(
-            Arrays.asList(new Analyzer() {
-                @Override
-                public boolean support(Class<?> clazz) {
-                    return Object.class.equals(clazz);
-                }
-                @Override
-                public DefaultType analyze(Class<?> clazz) {
-                    return new AnyType();
-                }
-            }
-            ,new Analyzer() {
-                @Override
-                public boolean support(Class<?> clazz) {
-                    return AnonymousType.class.equals(clazz);
-                }
-                @Override
-                public DefaultType analyze(Class<?> clazz) {
-                    return new AnonymousType();
-                }
-            }
+    List<TypeAnalyzer.Analyzer> analyzers = new ArrayList<>(
+            Arrays.asList(new TypeAnalyzer.Analyzer() {
+                              @Override
+                              public boolean support(Class<?> clazz) {
+                                  return Object.class.equals(clazz);
+                              }
+
+                              @Override
+                              public DefaultType analyze(Class<?> clazz) {
+                                  return new AnyType();
+                              }
+                          }
+                    , new TypeAnalyzer.Analyzer() {
+                        @Override
+                        public boolean support(Class<?> clazz) {
+                            return AnonymousType.class.equals(clazz);
+                        }
+
+                        @Override
+                        public DefaultType analyze(Class<?> clazz) {
+                            return new AnonymousType();
+                        }
+                    }
             )
     );
 
@@ -82,14 +81,14 @@ public class TypeAnalyzer {
             whiteList.addExcludePackage(clazz.getPackage().getName());
             DefaultType analyzer = analyzer(clazz);
             if (StringUtils.hasLength(forceType)) {
-                analyzer.typeName=forceType;
+                analyzer.typeName = forceType;
             }
             return analyzer;
         }
         whiteList.addExcludePackage(typeObject.getClass().getPackage().getName());
         DefaultType analyzer = analyzer(typeObject);
         if (StringUtils.hasLength(forceType)) {
-            analyzer.typeName=forceType;
+            analyzer.typeName = forceType;
         }
         return analyzer;
     }
@@ -110,7 +109,7 @@ public class TypeAnalyzer {
     }
 
     DefaultType analyzer(Class<?> t, Field field) {
-        Optional<Analyzer> analyzer = analyzers.stream().filter(a -> a.support(t)).findFirst();
+        Optional<TypeAnalyzer.Analyzer> analyzer = analyzers.stream().filter(a -> a.support(t)).findFirst();
         if (analyzer.isPresent()) {
             return analyzer.get().analyze(t);
         }
@@ -118,9 +117,9 @@ public class TypeAnalyzer {
             return new MapType();
         } else if (Collection.class.isAssignableFrom(t)) {
             return Optional.ofNullable(field).map(this::getArrayType).orElseGet(() -> getArrayType(t));
-        } else if (Number.class.isAssignableFrom(t)||int.class.isAssignableFrom(t)||long.class.isAssignableFrom(t)||float.class.isAssignableFrom(t)||double.class.isAssignableFrom(t)) {
+        } else if (Number.class.isAssignableFrom(t)) {
             return new NumberRawType();
-        } else if (Boolean.class.isAssignableFrom(t)||boolean.class.isAssignableFrom(t)) {
+        } else if (Boolean.class.isAssignableFrom(t)) {
             return new BooleanRawType();
         } else if (String.class.isAssignableFrom(t)) {
             return new StringRawType();
@@ -135,6 +134,7 @@ public class TypeAnalyzer {
             if (typeProcessing.containsKey(t)) {
                 return typeProcessing.get(t);
             }
+
 
             String name =Optional.ofNullable(AnnotationUtils.getAnnotation(t, TD.class))
                     .map(TD::name)
@@ -158,11 +158,11 @@ public class TypeAnalyzer {
                     st.add(TypeDefinition.builder()
                             .name(n)
                             .type(ft)
-                            .required(annotation.required())
-                            .describe(annotation.desc())
+                                    .required(annotation.required())
+                                    .describe(annotation.desc())
                             .build());
                 });
-            });;
+            });
             return st;
         }
     }
@@ -176,5 +176,6 @@ public class TypeAnalyzer {
         boolean support(Class<?> clazz);
 
         DefaultType analyze(Class<?> clazz);
+
     }
 }

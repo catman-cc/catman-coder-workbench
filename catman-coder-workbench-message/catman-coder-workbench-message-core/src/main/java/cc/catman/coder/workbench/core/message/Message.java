@@ -1,5 +1,9 @@
 package cc.catman.coder.workbench.core.message;
 
+import cc.catman.coder.workbench.core.message.exchange.IMessageExchange;
+import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriber;
+import cc.catman.coder.workbench.core.message.subscriber.MatchMessageSubscriber;
+import cc.catman.coder.workbench.core.message.subscriber.filter.P2PMessageSubscriberFilter;
 import cc.catman.plugin.core.label.Labels;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,6 +18,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * 为什么消息有channel的同时还包含了sender和receiver?
@@ -36,19 +41,127 @@ public class Message<T> implements Serializable {
     private MessageType type=MessageType.UNICAST; // 消息类型
     private String channelId; // 消息的信道唯一标志
     private String channelKind; // 消息的信道类型,该类型用于初始化信道,不同的类型对应不同的信道实例
+
+    // sender和receiver的作用是为了在channel内实现点对点通信,如果不指定receiver,则表示消息的接收方是信道的所有者
     private String sender; // 消息发送者,在回复时,该数据将被传递给新消息的receiver字段
     private String receiver; // 消息的接收方,指定消息的接收方,如果为空,则表示消息的接收方是信道的所有者
+
     private int count; // 消息被处理的次数
     private T payload; // 消息的内容
     private long timestamp; // 消息的时间戳
     private long consumeTime; // 消息的消费时间
 
-    private final Map<String,Object> sendBack=new HashMap<>(); // 消息的回传数据,消息的接收方在响应时,该数据被包含在back字段中
+    private  Map<String,Object> sendBack=new HashMap<>(); // 消息的回传数据,消息的接收方在响应时,该数据被包含在back字段中
 
     private  Map<String,Object> back=new HashMap<>(); // 接收到消息,在应答时,会将sendBack中的数据回传给发送者
 
+    /**
+     * 消息的带外数据,用于存储消息的附加数据,该数据会被序列化处理,或许改名叫headers?
+     */
+    private Map<String,Object> headers=new HashMap<>();
+
     @JsonIgnore
     private transient MessageChannel messageChannel;
+    @JsonIgnore
+    private transient IMessageDecoderFactory messageDecoderFactory;
+    @JsonIgnore
+    private transient IMessageExchange messageExchange;
+    /**
+     * 消息的附加属性,这些属性只会在本地流转,不会被序列化
+     */
+    @JsonIgnore
+    @Builder.Default
+    private transient Map<String,Object> attributes=new HashMap<>();
+
+    public Message<T> setHeader(String key,Object value){
+        if (headers==null){
+            headers=new HashMap<>();
+        }
+        headers.put(key,value);
+        return this;
+    }
+
+    public <T> T getHeader(String key){
+        if (headers==null){
+            return null;
+        }
+        if (headers.containsKey(key)){
+            return (T) headers.get(key);
+        }
+        return null;
+    }
+    public Message<T> setAttr(String key,Object value){
+        if (attributes==null){
+            attributes=new HashMap<>();
+        }
+        attributes.put(key,value);
+        return this;
+    }
+
+    public <T> T getAttr(String key){
+        if (attributes==null){
+            return null;
+        }
+        if (attributes.containsKey(key)){
+            return (T) attributes.get(key);
+        }
+        return null;
+    }
+
+    public <T> Message<T> covert(Class<T> clazz){
+        if (this.payload==null){
+           return this.reType(clazz);
+        }
+        if (clazz.isAssignableFrom(this.payload.getClass())){
+            return (Message<T>) this;
+        }
+        return messageDecoderFactory.decode(this,clazz);
+    }
+
+    public <T> Message<T> copy(T payload){
+        return Message.<T>builder()
+                .id(UUID.randomUUID().toString())
+                .topic(this.topic)
+                .labels(this.labels)
+                .type(this.type)
+                .channelId(this.channelId)
+                .channelKind(this.channelKind)
+                .sender(this.sender)
+                .receiver(this.receiver)
+                .count(this.count)
+                .payload(payload)
+                .timestamp(this.timestamp)
+                .consumeTime(this.consumeTime)
+                .sendBack(this.sendBack)
+                .back(this.back)
+                .messageChannel(this.messageChannel)
+                .messageDecoderFactory(this.messageDecoderFactory)
+                .build();
+    }
+
+    public <T> Message<T> reType(Class<T> clazz){
+        if (this.payload!=null){
+            throw new RuntimeException("Message payload is not null,can not reType");
+        }
+        return Message.<T>builder()
+                .id(UUID.randomUUID().toString())
+                .topic(this.topic)
+                .labels(this.labels)
+                .type(this.type)
+                .channelId(this.channelId)
+                .channelKind(this.channelKind)
+                .sender(this.sender)
+                .receiver(this.receiver)
+                .count(this.count)
+                .timestamp(this.timestamp)
+                .consumeTime(this.consumeTime)
+                .sendBack(this.sendBack)
+                .back(this.back)
+                .messageChannel(this.messageChannel)
+                .messageDecoderFactory(this.messageDecoderFactory)
+                .build();
+    }
+
 
     public static Message<String> create(String payload){
         return Message.<String>builder()
@@ -132,6 +245,28 @@ public class Message<T> implements Serializable {
             }
         }
         this.messageChannel.send(message);
+    }
+
+    /**
+     * 创建一个P2P的信道,即点对点信道,该信道其实是一个特殊的订阅者
+     * @param sender 发送者id
+     * @param receiver 接收者id
+     */
+    public IMessageSubscriber createP2PChannel(String sender,String receiver,Function<Message<?>,MessageResult> onReceive){
+        MatchMessageSubscriber ms = MatchMessageSubscriber.builder()
+                .attributes(Map.of("p2p",true
+                        , P2PMessageSubscriberFilter.PROPERTY_RECEIVER_NAME,receiver
+                        ,P2PMessageSubscriberFilter.PROPERTY_SENDER_NAME,sender)
+                )
+                .messageMatch((m) -> true)
+                .onReceive(onReceive)
+                .build();
+        getMessageExchange().add(ms);
+        return ms;
+    }
+
+    public IMessageSubscriber createP2PChannel(Function<Message<?>,MessageResult> onReceive){
+        return createP2PChannel(UUID.randomUUID().toString(),UUID.randomUUID().toString(),onReceive);
     }
 
     /**

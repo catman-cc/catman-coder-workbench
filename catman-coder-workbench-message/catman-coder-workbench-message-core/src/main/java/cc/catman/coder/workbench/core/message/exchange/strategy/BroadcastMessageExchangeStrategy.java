@@ -17,7 +17,7 @@ public class BroadcastMessageExchangeStrategy extends AbstractMessageExchangeStr
 
     @Override
     public void doExchange(Message<?> message) {
-        List<IMessageSubscriber> subscribers = this.subscriberManager.list();
+        List<IMessageSubscriber> subscribers = this.subscriberManager.list(message);
         for (IMessageSubscriber subscriber : subscribers.stream()
                 .filter(subscriber->subscriber.isMatch(message)).toList()
         ) {

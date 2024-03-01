@@ -26,5 +26,17 @@ public interface IFunctionInfoService {
      */
     Optional<FunctionInfo> findById(String id, ILoopReferenceContext context);
 
+
     FunctionInfo save(FunctionInfo functionInfo);
+
+    /**
+     * 根据kind查找函数信息
+     * @param kind 函数类型
+     * @return 函数信息
+     */
+    FunctionInfo findByKind(String kind);
+
+    FunctionInfo fillIfNeed(FunctionInfo functionInfo);
+
+    boolean isInnerFunction(String kind);
 }

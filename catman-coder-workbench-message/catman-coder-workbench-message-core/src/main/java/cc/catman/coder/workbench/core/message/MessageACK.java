@@ -4,6 +4,7 @@ public enum MessageACK {
     ACK, // 消息处理成功
     NACK, // 消息处理失败
     PENDING, // 消息处理中,
+    REDIRECT, // 消息重定向
     DROP // 消息丢弃
     ;
     public boolean success() {

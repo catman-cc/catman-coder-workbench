@@ -66,6 +66,7 @@ public class StructType extends MapType{
         if (getDefinitionMap().containsKey(typeDefinition.getName())){
             throw new TypeRuntimeException("Duplicate elements are created for the struct: @"+typeDefinition.getName());
         }
+        this.getContext().add(typeDefinition);
         this.getDefinitionMap().put(typeDefinition.getName(),typeDefinition);
         this.privateItems.put(typeDefinition.getId(),typeDefinition);
         return this;

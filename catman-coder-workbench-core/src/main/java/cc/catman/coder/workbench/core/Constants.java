@@ -20,6 +20,8 @@ public interface Constants {
 
 
         String TYPE_NAME_ANONYMOUS="anonymous";
+
+        String TYPE_NAME_FUNCTION="function";
     }
 
     interface ValueProviderKind{

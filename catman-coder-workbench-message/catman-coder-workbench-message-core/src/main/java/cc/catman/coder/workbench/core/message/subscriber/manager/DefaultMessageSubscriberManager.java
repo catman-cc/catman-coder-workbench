@@ -20,28 +20,52 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
 
     protected List<IMessageFilter> filters;
 
+    protected IMessageSubscriberFilterFactory filterFactory;
+
     public DefaultMessageSubscriberManager() {
         this.subscribers=new ArrayList<>();
         this.noMatchMessageSubscriber=new ArrayList<>();
         this.exceptionMessageSubscriber=new ArrayList<>();
         this.watchers=new ArrayList<>();
         this.filters=new ArrayList<>();
+        this.filterFactory=new DefaultMessageSubscriberFilterFactory();
         // 默认添加一次性订阅者观察者
         this.addWatcher(new OnceMessageSubscribeWatcher());
+
+    }
+
+    @Override
+    public IMessageSubscriberFilterFactory getFilterFactory() {
+        return filterFactory;
     }
 
     @Override
     public void addSubscriber(IMessageSubscriber subscriber) {
         subscribers.add(subscriber);
+        this.watchers.forEach(watcher -> watcher.afterAddSubscriber(subscriber,this));
     }
 
     @Override
     public void removeSubscriber(IMessageSubscriber subscriber) {
+        this.watchers.forEach(watcher -> watcher.beforeRemoveSubscriber(subscriber,this));
         subscribers.remove(subscriber);
     }
 
     @Override
     public List<IMessageSubscriber> list() {
+        return subscribers;
+    }
+
+    @Override
+    public List<IMessageSubscriber> list(Message<?> message) {
+        List<IMessageSubscriberFilter> filters = this.filterFactory.createFilters(message);
+        if(filters.isEmpty()){
+           return this.list();
+        }
+        List<IMessageSubscriber> subscribers = new ArrayList<>(this.list());
+        for (IMessageSubscriberFilter filter : filters) {
+            subscribers =filter.filter(subscribers);
+        }
         return subscribers;
     }
 
@@ -92,8 +116,8 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
     }
 
     @Override
-    public void add(MessageMatch match, Function<Message<?>, MessageResult> func) {
-        this.addSubscriber(new IMessageSubscriber() {
+    public IMessageSubscriber add(MessageMatch match, Function<Message<?>, MessageResult> func) {
+        IMessageSubscriber subscriber = new IMessageSubscriber() {
             @Override
             public boolean isMatch(Message<?> message) {
                 return match.match(message);
@@ -103,7 +127,14 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
             public MessageResult onReceive(Message<?> message) {
                 return func.apply(message);
             }
-        });
+
+            @Override
+            public void close() {
+                DefaultMessageSubscriberManager.this.removeSubscriber(this);
+            }
+        };
+        this.addSubscriber(subscriber);
+        return subscriber;
     }
 
     @Override
