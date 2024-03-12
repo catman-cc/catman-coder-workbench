@@ -85,12 +85,10 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
         // 接下来开始处理具体的类型定义
         DefaultType type = typeDefinition.getType();
         // 比较类型定义关联是否有变化
-        TypeDefinitionTypeRef typeDefinitionTypeRef = typeDefinitionTypeRefRepository
-                .findOne(Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(currentTypeDefinitionPO.getId()).build()))
-                .orElseGet(() ->{
-                    TypeDefinitionTypeRef tdtf = TypeDefinitionTypeRef.builder().id(idGenerator.generateId().toString()).typeName("").build();
-                    return tdtf;
-                });
+        Optional<TypeDefinitionTypeRef> one = typeDefinitionTypeRefRepository
+                .findOne(Example.of(TypeDefinitionTypeRef.builder().typeDefinitionId(currentTypeDefinitionPO.getId()).build()));
+        TypeDefinitionTypeRef typeDefinitionTypeRef = one
+                .orElseGet(()->TypeDefinitionTypeRef.builder().id(idGenerator.generateId().toString()).typeName("").build());
 
         String typeName = typeDefinitionTypeRef.getTypeName();
         if (!typeName.equals(type.getTypeName())) {
@@ -148,13 +146,16 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                         .build());
             } else if (sortedItems.size() > 1) {
                 throw new IllegalArgumentException("数组类型只能有一个元素,名称:"+typeDefinition.getName()+",当前元素数量:" + sortedItems.size());
-            } else if (sortedItems.stream().filter(item -> !item.getName().equals("elements")).count() > 0) {
+            } else if (sortedItems.stream().anyMatch(item -> !item.getName().equals("elements"))) {
                 throw new IllegalArgumentException("数组类型的元素名称必须为elements");
             }
         }
 
         // 接下来是处理子元素类型定义,首先排除掉基础类型,因为基础类型不持有子类型定义
         ETypeName eType = ETypeName.from(type.getTypeName());
+        if (Optional.ofNullable(eType).isEmpty()){
+            throw new IllegalArgumentException("unSupport typeName:"+type.getTypeName());
+        }
         if (eType.isRaw()) {
             // 基础类型不持有子类型定义,校验是否存在子元素类型定义
             if (!CollectionUtils.isEmpty(type.getSortedAllItems())) {
@@ -302,24 +303,20 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
     public Optional<TypeDefinition> deleteByBelongId(String belongId) {
         typeDefinitionTypeRefRepository.findOne(Example.of(TypeDefinitionTypeRef.builder()
                 .typeDefinitionId(belongId)
-                .build())).ifPresent(typeDefinitionTypeRef -> {
-            typeDefinitionTypeItemRefRepository
-                    .findAll(Example.of(TypeDefinitionTypeItemRef.builder().typeDefinitionTypeId(typeDefinitionTypeRef.getId()).build()))
-                    .forEach(typeDefinitionTypeItemRef -> {
-                        // 处理获取的每一个子类型定义
-                        findById(typeDefinitionTypeItemRef.getReferencedTypeDefinitionId()).ifPresent(typeDefinition -> {
-                            // 递归删除
-                            if (Scope.PRIVATE.equals(typeDefinition.getScope())) {
-                                deleteById(typeDefinitionTypeItemRef.getReferencedTypeDefinitionId());
-                            } else {
-                                // 公开的类型定义,删除关联关系即可
-                                typeDefinitionTypeItemRefRepository.delete(typeDefinitionTypeItemRef);
-                            }
-                        });
-                    });
-
-        });
-
+                .build())).ifPresent(typeDefinitionTypeRef -> typeDefinitionTypeItemRefRepository
+                        .findAll(Example.of(TypeDefinitionTypeItemRef.builder().typeDefinitionTypeId(typeDefinitionTypeRef.getId()).build()))
+                        .forEach(typeDefinitionTypeItemRef -> {
+                            // 处理获取的每一个子类型定义
+                            findById(typeDefinitionTypeItemRef.getReferencedTypeDefinitionId()).ifPresent(typeDefinition -> {
+                                // 递归删除
+                                if (Scope.PRIVATE.equals(typeDefinition.getScope())) {
+                                    deleteById(typeDefinitionTypeItemRef.getReferencedTypeDefinitionId());
+                                } else {
+                                    // 公开的类型定义,删除关联关系即可
+                                    typeDefinitionTypeItemRefRepository.delete(typeDefinitionTypeItemRef);
+                                }
+                            });
+                        }));
         return Optional.empty();
     }
 
@@ -334,7 +331,7 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
 
     @Override
     public long count(String id) {
-        list(null).stream()
+       return list(null).stream()
                 .filter(td -> Scope.PUBLIC.equals(td.getScope()))
                 .filter(td -> {
                     // 根据标签进行过滤
@@ -350,7 +347,6 @@ public class TypeDefinitionServiceImpl implements ITypeDefinitionService {
                             .filter(td.getLabels());
                 })
                 .count();
-        return 0;
     }
 
     @Override

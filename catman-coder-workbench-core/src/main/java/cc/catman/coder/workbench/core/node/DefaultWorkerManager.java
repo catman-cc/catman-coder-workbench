@@ -17,6 +17,11 @@ public class DefaultWorkerManager implements IWorkerManager{
     @Builder.Default
     private List<IWorkerWatcher> watchers=new ArrayList<>();
 
+    public DefaultWorkerManager() {
+        this.workers = new LinkedHashMap<>();
+        this.watchers = new ArrayList<>();
+    }
+
     public DefaultWorkerManager(Map<String, IWorker> workers, List<IWorkerWatcher> watchers) {
         this.workers = workers;
         this.watchers = watchers;

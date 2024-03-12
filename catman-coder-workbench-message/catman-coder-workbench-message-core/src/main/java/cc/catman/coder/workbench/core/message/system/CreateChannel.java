@@ -15,10 +15,13 @@ public class CreateChannel {
      * 信道名称
      */
     private String channelId;
+
+    private String name;
+
     /**
      * 信道类型
      */
-    private String channelKind;
+    private String kind;
     /**
      * 如果已经存在了同类型,同名的信道,是否覆盖
      */

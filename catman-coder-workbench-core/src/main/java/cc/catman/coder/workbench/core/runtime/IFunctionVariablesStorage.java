@@ -90,4 +90,6 @@ public interface IFunctionVariablesStorage {
         }
         return aliasName;
     }
+
+    void addIfAbsent(Map<String, Object> variables);
 }

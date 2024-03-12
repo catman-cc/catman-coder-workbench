@@ -10,12 +10,12 @@ public class IFunctionCallExceptionResult {
     /**
      * 异常是否被处理
      */
-   private boolean isHandled;
+    private boolean isHandled;
 
-   /**
-    * 异常处理结果
-    */
-   private IFunctionCallResultInfo resultInfo;
+    /**
+     * 异常处理结果
+     */
+    private IFunctionCallResultInfo resultInfo;
 
     public IFunctionCallExceptionResult(boolean isHandled, IFunctionCallResultInfo resultInfo) {
         this.isHandled = isHandled;
@@ -23,7 +23,7 @@ public class IFunctionCallExceptionResult {
     }
 
     public static IFunctionCallExceptionResult unhandled() {
-       return new IFunctionCallExceptionResult(false, null);
+        return new IFunctionCallExceptionResult(false, null);
     }
 
     public static IFunctionCallExceptionResult handled(IFunctionCallResultInfo resultInfo) {

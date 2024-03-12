@@ -26,12 +26,6 @@ public class DefaultFunctionCallResultInfo implements IFunctionCallResultInfo{
         return info;
     }
 
-
-    @Override
-    public Optional<Object> getResult() {
-        return Optional.ofNullable(result);
-    }
-
     @Override
     public Optional<Object> getException() {
         return Optional.ofNullable(exception);

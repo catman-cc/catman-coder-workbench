@@ -1,14 +1,21 @@
-package cc.catman.coder.workbench.core.runtime;
+package cc.catman.coder.workbench.core.runtime.parameter.parser;
 
+import cc.catman.coder.workbench.core.function.FunctionCallInfo;
 import cc.catman.coder.workbench.core.parameter.Parameter;
-import cc.catman.coder.workbench.core.runtime.parameter.parser.IParameterParseStrategy;
+import cc.catman.coder.workbench.core.runtime.IFunctionCallInfo;
+import cc.catman.coder.workbench.core.runtime.IParameterParserManager;
+import cc.catman.coder.workbench.core.runtime.IRuntimeStack;
 import cc.catman.coder.workbench.core.type.TypeDefinition;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
 @Slf4j
 public abstract class AbstractParameterParseStrategy implements IParameterParseStrategy {
+    @Setter
+    protected IParameterParserManager parameterParserManager;
+
     @Override
     public boolean support(Parameter parameter) {
         TypeDefinition type = parameter.getType();
@@ -57,4 +64,21 @@ public abstract class AbstractParameterParseStrategy implements IParameterParseS
 
     public abstract String getSupportTypeName();
 
+    protected FunctionCallInfo getFunctionCallInfo(Parameter parameter){
+        return Optional.ofNullable(parameter.getValueFunction())
+                .orElse(parameter.getDefaultValueFunction());
+    }
+
+    protected void validateParameter(Parameter parameter,FunctionCallInfo callInfo){
+        if (Optional.ofNullable(callInfo).isEmpty()){
+            if (parameter.isRequired()){
+                throw new RuntimeException("参数" + parameter.getName() + "的值提取器返回的值为空,但是该参数是必须的");
+            }
+        }
+    }
+
+    @Override
+    public Object delegateParse(Parameter parameter, IRuntimeStack stack) {
+        return this.parameterParserManager.parse(parameter, stack);
+    }
 }

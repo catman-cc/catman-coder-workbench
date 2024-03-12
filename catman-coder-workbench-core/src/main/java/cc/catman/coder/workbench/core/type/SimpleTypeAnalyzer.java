@@ -1,5 +1,6 @@
 package cc.catman.coder.workbench.core.type;
 
+import cc.catman.coder.workbench.core.ILoopReferenceContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Getter;
@@ -29,8 +30,14 @@ public class SimpleTypeAnalyzer {
 
     private final static ObjectMapper objectMapper=new JsonMapper();
 
+    private ILoopReferenceContext context=ILoopReferenceContext.create();
+
     public static SimpleTypeAnalyzer of(TypeDesc typeDesc){
         return new SimpleTypeAnalyzer(typeDesc);
+    }
+
+    public static SimpleTypeAnalyzer of(TypeDesc typeDesc,ILoopReferenceContext context){
+        return new SimpleTypeAnalyzer(typeDesc,context);
     }
 
     @SneakyThrows
@@ -42,18 +49,26 @@ public class SimpleTypeAnalyzer {
         this.typeDesc = typeDesc;
     }
 
+    public SimpleTypeAnalyzer(TypeDesc typeDesc, ILoopReferenceContext context) {
+        this.typeDesc = typeDesc;
+        this.context = context;
+    }
+
     public TypeDefinition analyzer(){
         DefaultType type = DefaultType.builder()
-                .typeName(typeDesc.type).build();
+                .typeName(typeDesc.type)
+                .context(context)
+                .build();
         TypeDefinition typeDefinition = TypeDefinition.builder()
                 .type(type)
                 .name(typeDesc.name)
                 .describe(typeDesc.desc)
                 .build();
+        context.add(typeDefinition);
         if(this.typeDesc.items != null){
             this.typeDesc.items.forEach(item -> {
-                TypeDefinition itemTypeDefinition = SimpleTypeAnalyzer.of(item).analyzer();
-                type.add(itemTypeDefinition);
+                TypeDefinition itemTypeDefinition = SimpleTypeAnalyzer.of(item,context).analyzer();
+                type.addItem(itemTypeDefinition);
             });
         }
         return typeDefinition;

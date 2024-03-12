@@ -8,6 +8,7 @@ import cc.catman.coder.workbench.core.message.exchange.strategy.UnicastMessageEx
 import cc.catman.coder.workbench.core.message.subscriber.IMessageFilter;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriber;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
+import cc.catman.coder.workbench.core.message.subscriber.PostExchangeInjectMessageSubscriber;
 import cc.catman.coder.workbench.core.message.subscriber.manager.DefaultMessageSubscriberManager;
 import cc.catman.coder.workbench.core.message.validator.IMessageValidator;
 import cc.catman.coder.workbench.core.message.validator.ValidateResult;
@@ -20,14 +21,27 @@ import java.util.function.Function;
  * 默认消息交换器
  */
 public class DefaultMessageExchange implements IMessageExchange {
-    private Map<MessageType, IMessageExchangeStrategy> messageExchangeStrategies;
+    private final Map<MessageType, IMessageExchangeStrategy> messageExchangeStrategies;
 
+    /**
+     * 消息验证器,用于验证消息的合法性
+     */
     private List<IMessageValidator> messageValidators;
+
+    /**
+     * 消息订阅者管理器,管理并维护消息订阅者
+     */
     @Getter
     private IMessageSubscriberManager subscriberManager;
 
+    /**
+     * 消息解码器工厂,用于创建消息解码器,完成消息载荷的解码
+     */
     @Getter
     private IMessageDecoderFactory messageDecoderFactory;
+    /**
+     * 消息信道管理器,用于管理消息的信道
+     */
     @Getter
     private ChannelManager channelManager;
 
@@ -102,6 +116,9 @@ public class DefaultMessageExchange implements IMessageExchange {
     @Override
     public DefaultMessageExchange add(IMessageSubscriber subscriber) {
         subscriberManager.addSubscriber(subscriber);
+        if (subscriber instanceof PostExchangeInjectMessageSubscriber){
+            ((PostExchangeInjectMessageSubscriber) subscriber).injectMessageExchange(this);
+        }
         return this;
     }
 

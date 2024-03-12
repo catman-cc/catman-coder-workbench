@@ -23,6 +23,9 @@ public abstract class AbstractMessageExchangeStrategy implements IMessageExchang
     public void exchange(Message<?> message) {
         // 执行路由策略
         // 🤔,简陋的处理机制,不过目前足以应对业务
+
+        // TODO 或许此处应该构建一个消息处理链,而不是简单的遍历
+        // 消息处理链处理后返回最终的MessageResult,然后根据MessageResult进行后续处理
         try {
             doExchange(message);
             if (message.getCount()==0){

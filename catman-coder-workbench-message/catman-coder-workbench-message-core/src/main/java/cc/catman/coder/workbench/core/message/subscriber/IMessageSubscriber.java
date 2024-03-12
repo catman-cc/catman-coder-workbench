@@ -4,11 +4,13 @@ import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageResult;
 import cc.catman.coder.workbench.core.message.MessageType;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface IMessageSubscriber {
+public interface IMessageSubscriber extends Closeable {
 
     /**
      * 支持的消息类型,默认支持所有消息类型
@@ -45,6 +47,8 @@ public interface IMessageSubscriber {
      */
     MessageResult onReceive(Message<?> message);
 
-    default void close(){
+    @Override
+    default void close() throws IOException{
+
     }
 }

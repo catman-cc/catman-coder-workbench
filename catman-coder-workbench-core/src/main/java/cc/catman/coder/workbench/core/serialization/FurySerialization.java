@@ -2,7 +2,6 @@ package cc.catman.coder.workbench.core.serialization;
 
 import org.apache.fury.Fury;
 
-import java.io.IOException;
 
 /**
  * Fury序列化,性能最好,但是目前处于实验阶段

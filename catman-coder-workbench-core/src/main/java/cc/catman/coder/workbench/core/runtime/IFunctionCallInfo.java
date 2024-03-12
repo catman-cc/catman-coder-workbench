@@ -47,5 +47,7 @@ public interface IFunctionCallInfo {
 
     IFunctionInfo getFunctionInfo();
 
+    String getConfig();
+
     Object call(IRuntimeStack stack);
 }

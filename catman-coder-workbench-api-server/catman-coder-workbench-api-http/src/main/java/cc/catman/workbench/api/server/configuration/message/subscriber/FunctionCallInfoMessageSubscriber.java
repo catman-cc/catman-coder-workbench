@@ -2,6 +2,7 @@ package cc.catman.workbench.api.server.configuration.message.subscriber;
 
 import cc.catman.coder.workbench.core.function.FunctionCallInfo;
 import cc.catman.coder.workbench.core.function.FunctionInfo;
+import cc.catman.coder.workbench.core.function.GenericSchema;
 import cc.catman.coder.workbench.core.message.Message;
 import cc.catman.coder.workbench.core.message.MessageACK;
 import cc.catman.coder.workbench.core.message.MessageResult;
@@ -38,8 +39,11 @@ public class FunctionCallInfoMessageSubscriber extends AbstractAntPathMessageSub
         payload=functionInfoService.fillIfNeed(payload);
         // 创建函数
         FunctionCallInfo functionCallInfo = functionCallService.create(payload);
+
+        // 此处需要将其转换为Schema对象
         // 执行应答操作
-        message.answer(Message.of(functionCallInfo));
+        message.answer(Message.of(GenericSchema.of(functionCallInfo)));
         return MessageResult.builder().ack(MessageACK.ACK).doNext(false).build();
     }
+
 }

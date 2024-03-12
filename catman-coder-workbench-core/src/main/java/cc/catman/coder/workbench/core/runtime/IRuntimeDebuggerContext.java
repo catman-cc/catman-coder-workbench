@@ -1,9 +1,9 @@
 package cc.catman.coder.workbench.core.runtime;
 
-import cc.catman.coder.workbench.core.runtime.debug.Breakpoint;
-
 import java.util.List;
 import java.util.Optional;
+
+import cc.catman.coder.workbench.core.runtime.debug.Breakpoint;
 
 /**
  * 运行时调试器上下文,用于提供调试器所需的上下文信息
@@ -17,6 +17,10 @@ public interface IRuntimeDebuggerContext {
     IRuntimeStackDistributor getDistributor();
 
     List<Breakpoint> getBreakpoints();
+
+    default boolean  isDebugMode() {
+        return false;
+    }
 
     /**
      * 获取当前运行时堆栈
@@ -41,13 +45,13 @@ public interface IRuntimeDebuggerContext {
      * @param breakpointName 断点名称
      * @param args           断点参数
      */
-    default void triggerBreakpoint(String breakpointName, Object... args) {
-        IRuntimeStack stack = getRuntimeStack();
-        if (!stack.isDebugMode()) {
+    default void triggerBreakpoint(IRuntimeStack stack,String breakpointName, Object... args) {
+        if (!isDebugMode()) {
             return;
         }
         List<Breakpoint> breakpoints = getBreakpoints();
-        Optional<Breakpoint> bp = breakpoints.stream().filter(breakpoint -> breakpoint.getInformation().getName().equals(breakpointName))
+        Optional<Breakpoint> bp = breakpoints.stream()
+                .filter(breakpoint -> breakpoint.getInformation().getName().equals(breakpointName))
                 .filter(Breakpoint::isEnable)
                 .findFirst();
         if (bp.isEmpty()) {
@@ -59,12 +63,13 @@ public interface IRuntimeDebuggerContext {
                     IFunctionRuntimeProvider assertProvider = breakpoint.getAssertProvider();
                     IRuntimeStackDistributor distributor = getDistributor();
 
-                    IRuntimeStack childStack = stack.createChildStack("@debug-trigger-breakpoint", assertProvider, distributor);
-                    IFunctionCallResultInfo res = distributor.callFunction(assertProvider, childStack);
+                    IRuntimeStack childStack = stack.createChildStack("@debug-trigger-breakpoint", assertProvider,
+                            distributor);
+                    IFunctionCallResultInfo res = distributor.call(assertProvider, childStack);
                     if (res.hasException()) {
                         return false;
                     }
-                    return res.getResult().map(o -> (Boolean) o).orElse(false);
+                    return Optional.ofNullable(res.getResult()).map(o -> (Boolean) o).orElse(false);
                 }).orElse(true);
         if (!isAim) {
             return;

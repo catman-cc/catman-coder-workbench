@@ -29,8 +29,4 @@ public class LocalExecutor extends AbstractExecutor {
         return 0;
     }
 
-    @Override
-    public IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider) {
-        return null;
-    }
 }

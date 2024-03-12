@@ -69,4 +69,5 @@ public abstract class AbstractAntPathMessageSubscriber<T> extends GenericType<T>
 
     }
 
+
 }

@@ -28,4 +28,6 @@ public interface IFunctionRuntimeProvider {
      * @return 调度器
      */
     Map<String,Object> getOutOfBandData();
+
+    IFunctionRuntimeProvider wrapper(IFunctionCallInfo functionInfo);
 }

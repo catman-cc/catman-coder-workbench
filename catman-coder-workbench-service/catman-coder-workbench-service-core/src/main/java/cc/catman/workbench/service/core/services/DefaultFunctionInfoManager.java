@@ -27,6 +27,12 @@ public class DefaultFunctionInfoManager implements IFunctionInfoManager {
     }
 
     @Override
+    public IFunctionInfoManager addInnerFunctionInfo(String kind, FunctionInfo functionInfo) {
+        innerFunctionInfos.put(kind, functionInfo);
+        return this;
+    }
+
+    @Override
     public FunctionInfo load(String id, String kind, IFunctionInfoService functionInfoService) {
         // 根据kind进行初步筛选,获取对应的函数信息
         if (innerFunctionInfos.containsKey(kind)) {
