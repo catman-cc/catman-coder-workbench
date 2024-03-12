@@ -1,9 +1,9 @@
 package cc.catman.coder.workbench.core.runtime;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import cc.catman.coder.workbench.core.runtime.executor.IFunctionExecutorManager;
+import cc.catman.coder.workbench.core.schedule.ISchedule;
+
+import java.util.*;
 
 /**
  * 运行时堆栈信息
@@ -32,6 +32,10 @@ public interface IRuntimeStack {
      * @return 变量表
      */
     IFunctionVariablesTable getVariablesTable();
+
+    IFunctionExecutorManager getExecutorManager();
+
+    ISchedule getSchedule();
 
     default List<String> getFullName(){
         if (getParentStack().isPresent()) {
@@ -95,12 +99,6 @@ public interface IRuntimeStack {
      */
     IRuntimeStackDistributor getDistributor();
 
-//    /**
-//     * 获取当前堆栈的运行信息提供者
-//     * @return 运行时提供者
-//     */
-//    IFunctionRuntimeProvider getFunctionRuntimeProvider();
-
     /**
      * 获取当前堆栈的调试器上下文
      * @return 调试器上下文
@@ -131,6 +129,10 @@ public interface IRuntimeStack {
 
     IRuntimeStack createChildStack(String prefix,IFunctionCallInfo callInfo, Map<String,Object> presetVariables);
 
+    default IRuntimeStack createChildStack(String prefix,IFunctionCallInfo callInfo){
+        return createChildStack(prefix,callInfo,new HashMap<>());
+    }
+
     void destroy();
 
     /**
@@ -139,4 +141,8 @@ public interface IRuntimeStack {
      * @return 函数调用结果
      */
     IFunctionCallResultInfo call(IFunctionCallInfo func);
+
+    boolean isAsync();
+
+    boolean isRemote();
 }

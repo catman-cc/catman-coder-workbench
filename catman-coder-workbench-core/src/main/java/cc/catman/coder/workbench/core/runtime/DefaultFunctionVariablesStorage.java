@@ -27,7 +27,7 @@ public class DefaultFunctionVariablesStorage implements IFunctionVariablesStorag
 
     @Override
     public Optional<IFunctionVariablesStorage> getParent() {
-        return Optional.of(parent);
+        return Optional.ofNullable(parent);
     }
 
     @Override
@@ -57,5 +57,14 @@ public class DefaultFunctionVariablesStorage implements IFunctionVariablesStorag
     @Override
     public void add(Map<String, Object> variables) {
         this.variables.putAll(variables);
+    }
+
+    @Override
+    public void addIfAbsent(Map<String, Object> variables) {
+        variables.forEach((k,v)->{
+            if (!this.variables.containsKey(k)){
+                this.variables.put(k,v);
+            }
+        });
     }
 }

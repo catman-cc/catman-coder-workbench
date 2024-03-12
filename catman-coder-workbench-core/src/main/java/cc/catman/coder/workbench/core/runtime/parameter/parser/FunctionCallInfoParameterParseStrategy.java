@@ -1,7 +1,7 @@
-package cc.catman.coder.workbench.core.runtime.parameter;
+package cc.catman.coder.workbench.core.runtime.parameter.parser;
 
+import cc.catman.coder.workbench.core.Constants;
 import cc.catman.coder.workbench.core.parameter.Parameter;
-import cc.catman.coder.workbench.core.runtime.IParameterParseStrategy;
 import cc.catman.coder.workbench.core.runtime.IRuntimeStack;
 
 import java.util.Optional;
@@ -13,14 +13,15 @@ import java.util.Optional;
  * 目前我的实现是在解析时准备,而不是在执行时准备,因为执行时准备可能会访问到一些预期外的变量值.
  * 坏处就是,可能会执行一些无用的准备工作,但是这个开销是可以接受的.
  */
-public class FunctionCallInfoParameterParseStrategy implements IParameterParseStrategy {
+public class FunctionCallInfoParameterParseStrategy extends AbstractParameterParseStrategy {
+
     @Override
-    public boolean support(Parameter parameter) {
-        return parameter.getType().getType().isFunctionCall();
+    public Object doParse(Parameter parameter, Object preParseValue, IRuntimeStack stack) {
+        return getFunctionCallInfo(parameter);
     }
 
     @Override
-    public Object parse(Parameter parameter, IRuntimeStack stack) {
-        return Optional.ofNullable(parameter.getValueFunction()).orElse(parameter.getDefaultValueFunction());
+    public String getSupportTypeName() {
+        return Constants.Type.TYPE_NAME_FUNCTION_CALL_INFO;
     }
 }

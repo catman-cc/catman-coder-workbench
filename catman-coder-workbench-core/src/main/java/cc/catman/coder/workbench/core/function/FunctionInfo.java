@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import org.checkerframework.checker.units.qual.A;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 函数定义
@@ -52,17 +53,52 @@ public class FunctionInfo extends Base implements IFunctionInfo {
     /**
      * 函数的参数
      */
-    @Getter
-    @Setter
     @Builder.Default
-    private Map<String,TypeDefinition> args=new LinkedHashMap<>();
+    private Map<String,String> argIds=new LinkedHashMap<>();
 
-    /**
-     * 函数的返回值
-     */
-    @Getter
-    @Setter
-    private TypeDefinition result;
+    private String resultId;
+
+
+    public Map<String,TypeDefinition> getArgs(){
+        return this.argIds.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        (e)-> this.context.getTypeDefinition(e.getValue())
+                                .orElseThrow(()->new RuntimeException("类型定义不存在,id:" + e.getValue()))));
+    }
+
+    public void setArgs(Map<String,TypeDefinition> args){
+        this.argIds.clear();
+        args.forEach(this::addArg);
+    }
+
+    public FunctionInfo addArg(String name,TypeDefinition typeDefinition){
+        this.argIds.put(name,typeDefinition.getId());
+        this.context.add(typeDefinition);
+        return this;
+    }
+
+    public FunctionInfo addArgs(Map<String,TypeDefinition> args){
+        args.forEach(this::addArg);
+        return this;
+    }
+
+    public FunctionInfo addArgs(List<TypeDefinition> args){
+        args.forEach(arg->{
+            this.addArg(arg.getName(),arg);
+        });
+        return this;
+    }
+
+    public void setResult(TypeDefinition result) {
+        this.context.add(result);
+        this.resultId=result.getId();
+    }
+
+    public TypeDefinition getResult(){
+        return this.context.getTypeDefinition(this.resultId).orElse(null);
+    }
+
     @Setter
     @Builder.Default
     List<FunctionCallInfo> callQueue=new ArrayList<>();
@@ -70,6 +106,7 @@ public class FunctionInfo extends Base implements IFunctionInfo {
     public List<FunctionCallInfo> getCallQueue() {
         return callQueue;
     }
+
     @Getter
     @Setter
     @Builder.Default

@@ -51,4 +51,6 @@ public interface IFunctionVariablesTable {
     Map<String,Object> getVariables();
 
     IFunctionVariablesTable createChildTable(Map<String,Object> variables);
+
+    void readAll(IFunctionVariablesTable table);
 }

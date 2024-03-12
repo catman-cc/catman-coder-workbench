@@ -12,6 +12,7 @@ import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberFilte
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
 import cc.catman.coder.workbench.core.message.subscriber.filter.MessageTypeMessageSubscriberFilterCreator;
 import cc.catman.coder.workbench.core.message.subscriber.filter.P2PMessageSubscriberFilterCreator;
+import cc.catman.coder.workbench.core.message.system.CreateChannel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class MessageConfiguration {
     @Resource
     private IdGenerator idGenerator;
 
-    private static MessageChannel createChannel(Message<?> message, MessageConnection<?> connection, ChannelManager channelManager) {
+    private static MessageChannel createChannel(CreateChannel option, MessageConnection<?> connection, ChannelManager channelManager) {
         String cid = "default-" + connection.getId();
         synchronized (cid) {
             return channelManager.getChannel(cid).orElseGet(() -> DefaultMessageChannel.builder()

@@ -1,13 +1,14 @@
 package cc.catman.coder.workbench.core.runtime;
 
 import cc.catman.coder.workbench.core.label.ISelector;
+import cc.catman.coder.workbench.core.runtime.executor.IFunctionExecutorManager;
 import cc.catman.coder.workbench.core.schedule.ISchedule;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
- * 运行时堆栈分发器
+ * 运行时堆栈分发器,用于创建堆栈,销毁堆栈,调用堆栈
  */
 public interface IRuntimeStackDistributor {
 
@@ -16,7 +17,7 @@ public interface IRuntimeStackDistributor {
     }
 
      default IRuntimeStack createRuntimeStack(String name){
-          return createRuntimeStack(name,null);
+          return createRuntimeStack(name,new DefaultFunctionVariablesTable());
    }
 
     default IRuntimeStack createRuntimeStack(String name,IFunctionVariablesTable variablesTable){
@@ -27,12 +28,15 @@ public interface IRuntimeStackDistributor {
 
     IRuntimeStack createRuntimeStack(IFunctionRuntimeProvider provider);
 
-    IRuntimeStack createRuntimeStack(IFunctionRuntimeProvider provider, IRuntimeStack parentStack);
 
-    IRuntimeStack createRuntimeStack(IFunctionRuntimeProvider provider, IRuntimeStack parentStack, IRuntimeStack parentRuntimeStack);
+    IFunctionCallResultInfo call(IFunctionRuntimeProvider provider, IRuntimeStack stack);
 
-    IFunctionCallResultInfo callFunction(IFunctionRuntimeProvider provider, IRuntimeStack stack);
     IFunctionCallResultInfo call(IFunctionCallInfo callInfo, IRuntimeStack stack);
+
+   default IFunctionCallResultInfo call(IFunctionRuntimeProvider provider){
+       IRuntimeStack stack = this.createRuntimeStack(provider);
+         return call(provider,stack);
+   }
     /**
      * 获取堆栈信息
      * @param stackId 堆栈id

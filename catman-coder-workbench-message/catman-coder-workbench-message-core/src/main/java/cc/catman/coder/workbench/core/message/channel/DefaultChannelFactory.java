@@ -1,6 +1,7 @@
 package cc.catman.coder.workbench.core.message.channel;
 
 import cc.catman.coder.workbench.core.message.*;
+import cc.catman.coder.workbench.core.message.system.CreateChannel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,14 +27,10 @@ public class DefaultChannelFactory implements IChannelFactory {
     }
 
     @Override
-    public MessageChannel createChannel(Message<?> message, MessageConnection<?> connection, ChannelManager channelManager) {
-        String channelKind = Optional.ofNullable(message.getChannelKind()).orElse("default");
+    public MessageChannel createChannel(CreateChannel option, MessageConnection<?> connection, ChannelManager channelManager) {
+        String channelKind = Optional.ofNullable(option.getKind()).orElse("default");
         return Optional.ofNullable(channelCreatorMap.get(channelKind))
-                .map(c ->{
-                    MessageChannel channel = c.createChannel(message, connection, channelManager);
-                    message.setMessageChannel(channel);
-                    return channel;
-                })
+                .map(c -> c.createChannel(option, connection, channelManager))
                 .orElseThrow();
     }
 }

@@ -1,40 +1,4 @@
-## Installation manual
-The project is based on java17 development, built using maven and unit tested using junit5.
-
-Therefore, before use, please ensure that java17 and maven have been installed in your environment.
-
-1. Clone the project
-    ```shell
-    git clone https://github.com/catman-cc/catman-coder-workbench.git
-    ```
-2. Import the project into your development tool
-    You can open the project using your favorite developer tool, such as IntelliJ IDEA or Eclipse,This does not affect your use of the program.
-3. Run the following command to install the project
-    ```shell
-    mvn clean install
-    ```
-4. if you just want to start the project without running the test, you can use the following command
-    ```shell
-    mvn clean install -Dmaven.test.skip=true
-    ```
-   the command will skip the test and install the project directly, which is very useful when you are in a hurry.
-5. start project
-   You can use the following command to start the project.
-   ```shell
-    cd catman-coder-workbench-api-server/catman-coder-workbench-api-http
-    mvn spring-boot:run
-    ```
-
-## maven version control
-The MAVEN version can be updated using the following command本:
-```shell
- mvn versions:set -DnewVersion=0.0.1-SNAPSHOT  
-```
-Because I turned off the backup parameters, the backup file will not be generated.
-For more operations, refer to the documentation:[versions-maven-plugin](https://www.mojohaus.org/versions-maven-plugin/usage.html)
-
-### Developer Guide
-###  Usage example of basic function stack
+## Usage example of basic function stack
 
 You can use the code below to create a stack dispatcher that supports if/express/simple-value:
 

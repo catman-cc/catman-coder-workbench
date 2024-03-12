@@ -7,7 +7,7 @@ import java.util.Optional;
  */
 public interface IFunctionCallResultInfo {
 
-    Optional<Object> getResult();
+    Object getResult();
 
     Optional<Object> getException();
 
@@ -19,7 +19,7 @@ public interface IFunctionCallResultInfo {
     Optional<Long> getInternalTimeSpend();
 
     default boolean hasResult(){
-        return getResult().isPresent();
+        return getResult()!=null;
     }
 
     default boolean hasException(){

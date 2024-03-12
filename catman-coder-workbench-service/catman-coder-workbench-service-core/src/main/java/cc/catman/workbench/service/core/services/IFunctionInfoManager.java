@@ -9,5 +9,7 @@ public interface IFunctionInfoManager {
     boolean isInner(String kind);
     boolean support(String kind);
 
+    IFunctionInfoManager addInnerFunctionInfo(String kind,FunctionInfo functionInfo);
+
     FunctionInfo load(String id,String kind,IFunctionInfoService functionInfoService);
 }

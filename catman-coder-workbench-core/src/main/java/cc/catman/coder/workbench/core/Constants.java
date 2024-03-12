@@ -22,6 +22,7 @@ public interface Constants {
         String TYPE_NAME_ANONYMOUS="anonymous";
 
         String TYPE_NAME_FUNCTION="function";
+        String TYPE_NAME_FUNCTION_CALL_INFO = "function-call-info";
     }
 
     interface ValueProviderKind{

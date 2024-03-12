@@ -1,5 +1,7 @@
 package cc.catman.coder.workbench.core.message;
 
+import cc.catman.coder.workbench.core.message.system.CreateChannel;
+
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -16,6 +18,8 @@ public interface ChannelManager {
     MessageChannel getOrCreateChannel(Message<?> message, MessageConnection<?> connection);
 
     MessageChannel getOrCreateChannel(Message<?> message, Supplier<MessageConnection<?>> connectionSupplier);
+
+    MessageChannel create(CreateChannel option, MessageConnection<?> connection);
 
     MessageConnection<?> findBindConnection(String channelId);
 

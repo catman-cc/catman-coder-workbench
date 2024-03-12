@@ -21,7 +21,6 @@ public class DefaultSchedule implements ISchedule{
     @Override
     public IExecutor schedule(IFunctionRuntimeProvider provider) {
         // 根据kind选择合适的执行器
-        IFunctionInfo functionInfo = provider.getFunctionInfo().getFunctionInfo();
         List<IExecutor> candidate = executorManager.listExecutors().stream().filter(e -> e.isSupport(provider))
                 .toList();
         if (candidate.isEmpty()){

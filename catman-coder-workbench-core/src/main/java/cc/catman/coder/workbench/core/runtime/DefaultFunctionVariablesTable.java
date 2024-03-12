@@ -2,9 +2,22 @@ package cc.catman.coder.workbench.core.runtime;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class DefaultFunctionVariablesTable implements IFunctionVariablesTable{
     private Map<EIFunctionVariableScope, IFunctionVariablesStorage> variablesStorages;
+
+    public static DefaultFunctionVariablesTable of(Map<String,Object> presetVariables){
+        DefaultFunctionVariablesTable table = new DefaultFunctionVariablesTable();
+        table.getVariablesStorage(EIFunctionVariableScope.LOCAL).add(presetVariables);
+        return table;
+    }
+
+    public static DefaultFunctionVariablesTable of(EIFunctionVariableScope scope,Map<String,Object> presetVariables){
+        DefaultFunctionVariablesTable table = new DefaultFunctionVariablesTable();
+        table.getVariablesStorage(scope).add(presetVariables);
+        return table;
+    }
 
     public DefaultFunctionVariablesTable() {
         this.variablesStorages = new HashMap<>();
@@ -99,5 +112,14 @@ public class DefaultFunctionVariablesTable implements IFunctionVariablesTable{
         storages.put(EIFunctionVariableScope.TEMPORARY,childTemporary);
 
         return new DefaultFunctionVariablesTable(storages);
+    }
+
+    @Override
+    public void readAll(IFunctionVariablesTable table){
+        for (EIFunctionVariableScope scope : EIFunctionVariableScope.values()) {
+           Optional.ofNullable(table.getVariablesStorage(scope)).ifPresent(storage -> {
+               this.getVariablesStorage(scope).add(storage.getOriginalVariables());
+           });
+        }
     }
 }

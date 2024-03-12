@@ -58,7 +58,5 @@ public interface IExecutor {
      */
     IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider, IRuntimeStack stack);
 
-    IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider);
-
     IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider, IRuntimeStackDistributor stackDistributor);
 }

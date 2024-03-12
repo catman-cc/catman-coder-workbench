@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+/catman-coder-workbench-service/catman-coder-workbench-service-jdbc/test.db
+/.history/
+/db/catman-workbench.db.mv.db
+/db/catman-workbench.db.trace.db

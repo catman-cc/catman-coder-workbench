@@ -1,6 +1,7 @@
 package cc.catman.coder.workbench.core.message.channel;
 
 import cc.catman.coder.workbench.core.message.*;
+import cc.catman.coder.workbench.core.message.system.CreateChannel;
 import lombok.*;
 import org.codehaus.commons.nullanalysis.Nullable;
 
@@ -67,6 +68,24 @@ public class DefaultChannelManager implements ChannelManager {
         return getMessageChannel(message,  message.getChannelId(), messageConnection);
     }
 
+    @Override
+    public MessageChannel create(CreateChannel option, MessageConnection<?> connection) {
+        if (Optional.ofNullable(option).isEmpty()) {
+            throw new RuntimeException("create channel option is null");
+        }
+        if (Optional.ofNullable(option.getChannelId()).isEmpty()) {
+            throw new RuntimeException("create channel option id is null");
+        }
+
+        MessageChannel messageChannel = channelFactory.createChannel(option, connection, this);
+        if (messageChannel == null) {
+            return null;
+        }
+        this.channelToSession.put(messageChannel.getId(), connection.getId());
+        this.messageChannels.add(messageChannel);
+        return messageChannel;
+    }
+
     @Nullable
     private MessageChannel getMessageChannel(Message<?> message, String cid, MessageConnection<?> messageConnection) {
         if (Optional.ofNullable(cid).isPresent()){
@@ -87,7 +106,7 @@ public class DefaultChannelManager implements ChannelManager {
 
 
     protected MessageChannel createChannel(Message<?> message, MessageConnection<?> connection) {
-        MessageChannel messageChannel = channelFactory.createChannel(message, connection, this);
+        MessageChannel messageChannel = channelFactory.createChannel( CreateChannel.builder().channelId(message.getChannelId()).kind(message.getChannelKind()).build(), connection, this);
         if (messageChannel == null) {
             return null;
         }

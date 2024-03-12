@@ -2,8 +2,12 @@ package cc.catman.coder.workbench.core.executor;
 
 import cc.catman.coder.workbench.core.node.IWorker;
 import cc.catman.coder.workbench.core.runtime.*;
+import cc.catman.coder.workbench.core.runtime.executor.IFunctionExecutor;
+import cc.catman.coder.workbench.core.runtime.executor.IFunctionExecutorManager;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +17,8 @@ import java.util.Map;
  * 一个节点执行器实现,除了本地执行器外,执行器通常是一个RMI服务
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class WorkerExecutor implements IExecutor{
     private String id;
@@ -60,16 +66,16 @@ public class WorkerExecutor implements IExecutor{
 
     @Override
     public IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider, IRuntimeStack stack) {
-        return null;
-    }
-
-    @Override
-    public IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider) {
-        return null;
+        IRuntimeStackDistributor d = stack.getDistributor();
+        // 获取函数执行器
+        IFunctionExecutorManager executorManager = d.getExecutorManager();
+        IFunctionExecutor executor = executorManager.getExecutor(provider);
+        return executor.execute(provider, stack);
     }
 
     @Override
     public IFunctionCallResultInfo execute(IFunctionRuntimeProvider provider, IRuntimeStackDistributor stackDistributor) {
-        return null;
+        IRuntimeStack stack = stackDistributor.createRuntimeStack(provider);
+        return execute(provider,stack);
     }
 }

@@ -57,13 +57,5 @@ public class DefaultExecutorManager implements IExecutorManager {
         if (executor.getId()==null){
             throw new IllegalArgumentException("executor id is null");
         }
-
-//        if (executor.getInformation()==null){
-//            throw new IllegalArgumentException("executor information is null");
-//        }
-//
-//        if (executor.getInformation().getId()==null){
-//            throw new IllegalArgumentException("executor id is null");
-//        }
     }
 }
