@@ -3,9 +3,9 @@ package cc.catman.coder.workbench.core.runtime;
 import cc.catman.coder.workbench.core.parameter.Parameter;
 
 /**
- * 原始类型参数解析策略
+ * 原始类型参数解析策略,
  */
-public class RawParameterParseStrategy extends AbstractParameterParseStrategy{
+public class RawParameterParseStrategy extends AbstractParameterParseStrategy {
     private final Class<?> rawType;
 
     private final String typeName;
@@ -21,7 +21,7 @@ public class RawParameterParseStrategy extends AbstractParameterParseStrategy{
 
     @Override
     public Object doParse(Parameter parameter, Object preParseValue, IRuntimeStack stack) {
-        if (preParseValue==null){
+        if (preParseValue == null) {
             return null;
         }
         // 尝试进行类型转换操作

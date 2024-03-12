@@ -1,10 +1,14 @@
-package cc.catman.coder.workbench.core.runtime;
+package cc.catman.coder.workbench.core.runtime.executor;
+
+import cc.catman.coder.workbench.core.runtime.IFunctionCallInfo;
+import cc.catman.coder.workbench.core.runtime.IFunctionInfo;
+import cc.catman.coder.workbench.core.runtime.IFunctionRuntimeProvider;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 简单的执行器管理器
+ * 简单的执行器管理器,直接根据kind获取对应的执行器
  */
 public class SimpleFunctionExecutorManager implements IFunctionExecutorManager{
 
@@ -25,7 +29,7 @@ public class SimpleFunctionExecutorManager implements IFunctionExecutorManager{
 
     @Override
     public IFunctionExecutor getExecutor(IFunctionCallInfo callInfo) {
-        return null;
+        return this.executors.get(callInfo.getFunctionInfo().getKind());
     }
 
     @Override
