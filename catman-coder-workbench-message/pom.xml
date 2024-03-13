@@ -15,6 +15,7 @@
     <modules>
         <module>catman-coder-workbench-message-core</module>
         <module>catman-coder-workbench-message-netty</module>
+        <module>catman-coder-workbench-message-client</module>
     </modules>
 
     <properties>
@@ -22,5 +23,20 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cc.catman.coder</groupId>
+                <artifactId>catman-coder-workbench-message-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cc.catman.coder</groupId>
+                <artifactId>catman-coder-workbench-message-netty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

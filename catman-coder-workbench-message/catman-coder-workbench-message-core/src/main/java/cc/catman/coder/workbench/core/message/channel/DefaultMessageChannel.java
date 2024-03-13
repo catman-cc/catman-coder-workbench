@@ -18,15 +18,22 @@ public class DefaultMessageChannel implements MessageChannel {
     protected MessageConnection<?> connection;
 
     protected ChannelManager channelManager;
+    protected MessageHandlerCallback callback;
     @Override
     public MessageConnection<?> getConnection() {
         return this.channelManager.findBindConnection(this.id);
     }
 
     @Override
-    public void onMessage(Message<?> message, MessageContext context) {
-
+    public void onMessage(Message<?> message) {
+        Optional.ofNullable(this.callback).ifPresent(c->c.callback(message));
     }
+
+    @Override
+    public void onMessage(MessageHandlerCallback callback) {
+        this.callback=callback;
+    }
+
     @Override
     public MessageACK send(Message<?> message) {
         if (Optional.ofNullable(message.getChannelId()).isEmpty()){
@@ -36,10 +43,5 @@ public class DefaultMessageChannel implements MessageChannel {
             message.setChannelKind("default");
         }
         return this.connection.send(message);
-    }
-
-    @Override
-    public void send(Message<?> message, MessageHandlerCallback<?> callback) {
-        callback.callback(message,this.send(message));
     }
 }

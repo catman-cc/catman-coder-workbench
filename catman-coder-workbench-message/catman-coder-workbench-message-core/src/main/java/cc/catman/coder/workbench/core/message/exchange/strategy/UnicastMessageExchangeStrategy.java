@@ -18,7 +18,8 @@ public class UnicastMessageExchangeStrategy extends AbstractMessageExchangeStrat
     }
 
     @Override
-    public void doExchange(Message<?> message) {
+    public  MessageResult doExchange(Message<?> message) {
+        MessageResult result=MessageResult.drop();
         List<IMessageSubscriber> subscribers = this.subscriberManager.list(message);
         Optional<IMessageSubscriber> find = subscribers.stream()
                 .filter(subscriber -> subscriber.isMatch(message))
@@ -26,9 +27,10 @@ public class UnicastMessageExchangeStrategy extends AbstractMessageExchangeStrat
         if (find.isPresent()) {
             IMessageSubscriber subscriber = find.get();
             this.subscriberManager.triggerWatchBefore(message,subscriber );
-            MessageResult ignored = subscriber.onReceive(message);
+            result = subscriber.onReceive(message);
             message.increment();
             this.subscriberManager.triggerWatchAfter(message,subscriber );
         }
+        return result;
     }
 }

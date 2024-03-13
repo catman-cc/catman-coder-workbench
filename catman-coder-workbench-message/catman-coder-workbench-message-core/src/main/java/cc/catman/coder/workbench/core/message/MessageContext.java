@@ -15,5 +15,5 @@ public interface MessageContext<T> {
      * @param callback 回调
      * @return 消息应答
      */
-    MessageACK send(Message<?> message,MessageHandlerCallback<?> callback);
+    MessageACK send(Message<?> message,MessageHandlerCallback callback);
 }

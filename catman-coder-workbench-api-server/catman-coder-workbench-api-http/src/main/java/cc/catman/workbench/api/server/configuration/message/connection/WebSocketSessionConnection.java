@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
+
 
 @Slf4j
 @Data
@@ -25,6 +27,16 @@ public class WebSocketSessionConnection extends AbstractMessageConnection<WebSoc
     @Override
     public boolean isAlive() {
         return getRawConnection().isOpen();
+    }
+
+    @Override
+    public void close() {
+        try {
+            this.getRawConnection().close();
+            log.info("close connection {} success", this.getId());
+        } catch (IOException e) {
+            log.error("close connection {} fail,because: {}", this.getId(),e);
+        }
     }
 
     @Override

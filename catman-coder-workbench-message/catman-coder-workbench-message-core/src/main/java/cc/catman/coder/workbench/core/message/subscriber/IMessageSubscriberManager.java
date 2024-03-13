@@ -40,6 +40,8 @@ public interface IMessageSubscriberManager {
 
     List<IMessageFilter> filters();
 
+    List<IMessageSurround> surrounds();
+
     List<IMessageSubscriber> noMatchMessageSubscriber();
 
     List<IMessageErrorSubscriber> exceptionMessageSubscriber();
@@ -52,6 +54,8 @@ public interface IMessageSubscriberManager {
     void removeWatcher(IMessageSubscribeWatcher watcher);
 
     void add(IMessageFilter filter);
+
+    void add(IMessageSurround surround);
 
     default void addNoMatch(Function<Message<?>, MessageResult> func){
         this.addNoMatch((message -> true),func);

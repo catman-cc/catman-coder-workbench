@@ -1,6 +1,7 @@
 package cc.catman.coder.workbench.core.message.exchange.strategy;
 
 import cc.catman.coder.workbench.core.message.Message;
+import cc.catman.coder.workbench.core.message.MessageResult;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
 
 /**
@@ -34,7 +35,7 @@ public class P2PMessageExchangeStrategy extends AbstractMessageExchangeStrategy{
     }
 
     @Override
-    public void doExchange(Message<?> message) {
-
+    public MessageResult doExchange(Message<?> message) {
+        return MessageResult.drop();
     }
 }

@@ -21,10 +21,10 @@ public class SystemMessageSubscriber implements IMessageSubscriber {
         // 处理系统消息,并进行分发工作
 
         // 比如,信道相关的信息,分发给信道管理器
-        Message<CreateChannel> msg = message.covert(CreateChannel.class);
+        Message<CreateChannelOptions> msg = message.covert(CreateChannelOptions.class);
 
 
-        CreateChannel createChannel=null;
+        CreateChannelOptions createChannelOptions =null;
         // 由信道管理器创建信道
         MessageChannel channel=null;
 
