@@ -1,12 +1,11 @@
 package cc.catman.coder.workbench.core.message.exchange.strategy;
 
+import cc.catman.coder.workbench.core.message.MessageResult;
 import cc.catman.coder.workbench.core.message.exception.MessageExchangeStrategyNotFoundRuntimeException;
 import cc.catman.coder.workbench.core.message.exchange.IMessageExchangeStrategy;
 import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
 import cc.catman.coder.workbench.core.message.Message;
 
-import java.util.Map;
-import java.util.Optional;
 
 public abstract class AbstractMessageExchangeStrategy implements IMessageExchangeStrategy {
 
@@ -20,36 +19,26 @@ public abstract class AbstractMessageExchangeStrategy implements IMessageExchang
     }
 
     @Override
-    public void exchange(Message<?> message) {
+    public MessageResult exchange(Message<?> message) {
         // 执行路由策略
         // 🤔,简陋的处理机制,不过目前足以应对业务
-
+        MessageResult result=MessageResult.drop();
         // TODO 或许此处应该构建一个消息处理链,而不是简单的遍历
         // 消息处理链处理后返回最终的MessageResult,然后根据MessageResult进行后续处理
         try {
-            doExchange(message);
+            result= doExchange(message);
             if (message.getCount()==0){
                 // 没有匹配的消息处理器
                 subscriberManager.noMatchMessageSubscriber()
                         .forEach(subscriber -> subscriber.onReceive(message));
             }
-            // 回传一条消息,表示消息已经处理完成
-            message.answer(Message.create("ack", Map.of(
-                    "msgId",Optional.ofNullable(message.getId()).orElse(""),
-                    "res","ack"
-            )));
         } catch (Exception e) {
             // 异常处理
             subscriberManager.exceptionMessageSubscriber()
                     .forEach(subscriber -> subscriber.onError(message,new MessageExchangeStrategyNotFoundRuntimeException(e,message)));
-            // 回传一条消息,表示消息已经处理完成
-            message.answer(Message.create("ack", Map.of(
-                    "msgId", Optional.ofNullable(message.getId()).orElse(""),
-                    "res","err",
-                    "reason",e.getMessage()
-            )));
         }
+        return result;
     }
 
-    public abstract void doExchange(Message<?> message);
+    public abstract MessageResult doExchange(Message<?> message);
 }

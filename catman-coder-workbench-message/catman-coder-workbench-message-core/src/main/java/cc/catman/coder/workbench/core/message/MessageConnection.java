@@ -18,6 +18,7 @@ public interface MessageConnection<T> {
     T getRawConnection();
 
     boolean isAlive();
+    void  close();
 
     MessageContext getContext();
 

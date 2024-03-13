@@ -11,9 +11,10 @@ public interface MessageChannel {
    */
   MessageConnection<?> getConnection();
 
-  void onMessage(Message<?> message,MessageContext context);
+  void onMessage(Message<?> message);
+
+  void onMessage(MessageHandlerCallback callback);
 
   MessageACK send(Message<?> message);
 
-  void send(Message<?> message, MessageHandlerCallback<?> callback);
 }

@@ -16,6 +16,5 @@ public abstract class AbstractMessageConnection<T> implements MessageConnection<
     private String id;
     private String type;
     private T rawConnection;
-
     private MessageContext context;
 }

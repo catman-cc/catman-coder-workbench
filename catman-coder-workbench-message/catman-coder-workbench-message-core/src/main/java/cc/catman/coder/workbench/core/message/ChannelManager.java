@@ -1,6 +1,6 @@
 package cc.catman.coder.workbench.core.message;
 
-import cc.catman.coder.workbench.core.message.system.CreateChannel;
+import cc.catman.coder.workbench.core.message.system.CreateChannelOptions;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -19,7 +19,7 @@ public interface ChannelManager {
 
     MessageChannel getOrCreateChannel(Message<?> message, Supplier<MessageConnection<?>> connectionSupplier);
 
-    MessageChannel create(CreateChannel option, MessageConnection<?> connection);
+    MessageChannel create(CreateChannelOptions option, MessageConnection<?> connection);
 
     MessageConnection<?> findBindConnection(String channelId);
 
@@ -36,4 +36,11 @@ public interface ChannelManager {
     void removeChannel(String id);
 
     void removeChannel(MessageChannel messageChannel);
+
+    /**
+     * 为一个链接绑定默认的信道
+     * @param connection 连接
+     * @param messageChannel 信道
+     */
+    void bindDefault(MessageConnection<?> connection,MessageChannel messageChannel);
 }

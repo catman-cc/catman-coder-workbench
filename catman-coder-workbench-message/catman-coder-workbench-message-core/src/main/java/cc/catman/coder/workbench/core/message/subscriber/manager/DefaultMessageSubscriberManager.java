@@ -20,6 +20,8 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
 
     protected List<IMessageFilter> filters;
 
+    protected List<IMessageSurround> surrounds;
+
     protected IMessageSubscriberFilterFactory filterFactory;
 
     public DefaultMessageSubscriberManager() {
@@ -28,6 +30,7 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
         this.exceptionMessageSubscriber=new ArrayList<>();
         this.watchers=new ArrayList<>();
         this.filters=new ArrayList<>();
+        this.surrounds=new ArrayList<>();
         this.filterFactory=new DefaultMessageSubscriberFilterFactory();
         // 默认添加一次性订阅者观察者
         this.addWatcher(new OnceMessageSubscribeWatcher());
@@ -75,6 +78,11 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
     }
 
     @Override
+    public List<IMessageSurround> surrounds() {
+        return this.surrounds;
+    }
+
+    @Override
     public List<IMessageSubscriber> noMatchMessageSubscriber() {
         return noMatchMessageSubscriber;
     }
@@ -113,6 +121,11 @@ public class DefaultMessageSubscriberManager implements IMessageSubscriberManage
     @Override
     public void add(IMessageFilter filter) {
         this.filters.add(filter);
+    }
+
+    @Override
+    public void add(IMessageSurround surround) {
+        this.surrounds.add(surround);
     }
 
     @Override

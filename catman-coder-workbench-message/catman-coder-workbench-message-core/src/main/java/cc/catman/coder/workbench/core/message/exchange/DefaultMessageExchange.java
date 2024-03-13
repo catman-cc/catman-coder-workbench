@@ -5,10 +5,7 @@ import cc.catman.coder.workbench.core.message.channel.DefaultChannelManager;
 import cc.catman.coder.workbench.core.message.exception.MessageExchangeStrategyNotFoundRuntimeException;
 import cc.catman.coder.workbench.core.message.exchange.strategy.BroadcastMessageExchangeStrategy;
 import cc.catman.coder.workbench.core.message.exchange.strategy.UnicastMessageExchangeStrategy;
-import cc.catman.coder.workbench.core.message.subscriber.IMessageFilter;
-import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriber;
-import cc.catman.coder.workbench.core.message.subscriber.IMessageSubscriberManager;
-import cc.catman.coder.workbench.core.message.subscriber.PostExchangeInjectMessageSubscriber;
+import cc.catman.coder.workbench.core.message.subscriber.*;
 import cc.catman.coder.workbench.core.message.subscriber.manager.DefaultMessageSubscriberManager;
 import cc.catman.coder.workbench.core.message.validator.IMessageValidator;
 import cc.catman.coder.workbench.core.message.validator.ValidateResult;
@@ -49,7 +46,7 @@ public class DefaultMessageExchange implements IMessageExchange {
         this.messageExchangeStrategies = new HashMap<>();
         this.subscriberManager = new DefaultMessageSubscriberManager();
         this.messageDecoderFactory= new DefaultMessageDecoderFactory();
-        this.channelManager=new DefaultChannelManager();
+        this.channelManager=DefaultChannelManager.builder().build();
         this.messageValidators=new ArrayList<>();
         // 注册默认的消息交换策略
         this.register(MessageType.BROADCAST, new BroadcastMessageExchangeStrategy(this.subscriberManager));
@@ -77,9 +74,10 @@ public class DefaultMessageExchange implements IMessageExchange {
             message.setMessageExchange(this);
         }
         // 填充消息信道,除了system之外,其余的消息在交换时,都需要信道已经存在
-       channelManager.getOrCreateChannel(message, connection);
+        channelManager.getOrCreateChannel(message, connection);
 
-        this.subscriberManager.filters().forEach(filter -> filter.filter(message));
+        Message<?> fm = message;
+        this.subscriberManager.filters().forEach(filter -> filter.filter(fm));
 
         IMessageExchangeStrategy messageExchangeStrategy = messageExchangeStrategies.get(message.getType());
 
@@ -97,8 +95,21 @@ public class DefaultMessageExchange implements IMessageExchange {
                 this.subscriberManager.onError(message, new RuntimeException(res.getMessage()));
             }
         }
+        for (IMessageSurround messageSurround : this.subscriberManager.surrounds()) {
+            message=messageSurround.before(message);
+        }
+        MessageResult res =MessageResult.drop();
+        try {
+            res = messageExchangeStrategy.exchange(message);
+        }catch (Exception e) {
+            for (IMessageSurround messageSurround : this.subscriberManager.surrounds()) {
+                messageSurround.onError(message,e,res);
+            }
+        }
 
-        messageExchangeStrategy.exchange(message);
+        for (IMessageSurround messageSurround : this.subscriberManager.surrounds()) {
+            messageSurround.after(message,res);
+        }
     }
 
     @Override

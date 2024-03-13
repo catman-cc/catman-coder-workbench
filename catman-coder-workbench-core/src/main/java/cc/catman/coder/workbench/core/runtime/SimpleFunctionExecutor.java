@@ -15,5 +15,4 @@ public class SimpleFunctionExecutor implements IFunctionExecutor {
         return DefaultFunctionCallResultInfo.of(callInfo.getConfig());
     }
 
-
 }

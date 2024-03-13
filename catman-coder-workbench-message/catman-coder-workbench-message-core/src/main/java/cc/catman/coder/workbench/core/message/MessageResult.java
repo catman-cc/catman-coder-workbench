@@ -3,6 +3,9 @@ package cc.catman.coder.workbench.core.message;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 消息结果
  */
@@ -19,6 +22,17 @@ public class MessageResult {
      * 是否交由其他处理器继续处理
      */
     private boolean doNext;
+
+    /**
+     * 被订阅者处理的次数
+     */
+    private int handlerCount;
+
+    /**
+     * 记录处理过程中的详细信息
+     */
+    @Builder.Default
+    private List<Object> handlerDetails=new ArrayList<>();
 
     public static MessageResult ack(){
         return MessageResult.builder().ack(MessageACK.ACK).doNext(false).build();

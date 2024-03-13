@@ -20,7 +20,7 @@ public class DefaultMessageContext<T> implements MessageContext<T> {
     }
 
     @Override
-    public MessageACK send(Message<?> message, MessageHandlerCallback<?> callback) {
+    public MessageACK send(Message<?> message, MessageHandlerCallback callback) {
        return this.messageChannel.send(message);
     }
 }

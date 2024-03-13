@@ -16,15 +16,19 @@ public class BroadcastMessageExchangeStrategy extends AbstractMessageExchangeStr
     }
 
     @Override
-    public void doExchange(Message<?> message) {
+    public MessageResult doExchange(Message<?> message) {
         List<IMessageSubscriber> subscribers = this.subscriberManager.list(message);
+
+        MessageResult result=MessageResult.ack();
         for (IMessageSubscriber subscriber : subscribers.stream()
                 .filter(subscriber->subscriber.isMatch(message)).toList()
         ) {
             this.subscriberManager.triggerWatchBefore(message, subscriber);
-            MessageResult ignored = subscriber.onReceive(message);
+            result = subscriber.onReceive(message);
             message.increment();
             this.subscriberManager.triggerWatchAfter(message, subscriber);
         }
+        return result;
     }
+
 }

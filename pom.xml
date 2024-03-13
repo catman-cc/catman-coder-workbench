@@ -32,6 +32,7 @@
         <cat-man-plugin-manager.version>1.0.10</cat-man-plugin-manager.version>
         <jakarta.jakartaee-api.version>10.0.0</jakarta.jakartaee-api.version>
         <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
+        <java-WebSocket.version>1.5.4</java-WebSocket.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
@@ -93,6 +94,11 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>${mysql-connector-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.java-websocket</groupId>
+                <artifactId>Java-WebSocket</artifactId>
+                <version>${java-WebSocket.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

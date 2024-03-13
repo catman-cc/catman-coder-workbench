@@ -1,33 +1,8 @@
 package cc.catman.coder.workbench.core.message.netty.channel;
 
-import cc.catman.coder.workbench.core.message.*;
+import cc.catman.coder.workbench.core.message.channel.DefaultMessageChannel;
 
-public class NettyMessageChannel implements MessageChannel {
+public class NettyMessageChannel extends DefaultMessageChannel {
 
-    private MessageConnection<?> connection;
 
-    @Override
-    public String getId() {
-        return null;
-    }
-
-    @Override
-    public MessageConnection<?> getConnection() {
-        return this.connection;
-    }
-
-    @Override
-    public void onMessage(Message<?> message, MessageContext context) {
-
-    }
-
-    @Override
-    public MessageACK send(Message<?> message) {
-        return null;
-    }
-
-    @Override
-    public void send(Message<?> message, MessageHandlerCallback<?> callback) {
-
-    }
 }
